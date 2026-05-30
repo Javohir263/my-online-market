@@ -1,0 +1,110 @@
+[project]
+name = "my-online-market-backend"
+version = "0.1.0"
+description = "My Online Market — e-commerce backend (Django 5 + DRF)."
+requires-python = ">=3.12"
+
+# -----------------------------------------------------------------------------
+# Black — code formatter
+# -----------------------------------------------------------------------------
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+extend-exclude = '''
+/(
+    \.venv
+  | migrations
+  | media
+  | staticfiles
+)/
+'''
+
+# -----------------------------------------------------------------------------
+# Ruff — linter (replaces flake8, isort, pyupgrade, etc.)
+# -----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [".venv", "migrations", "media", "staticfiles"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # flake8-bugbear
+    "C4",       # flake8-comprehensions
+    "UP",       # pyupgrade
+    "S",        # flake8-bandit (security)
+    "RUF",      # ruff-specific
+    "DJ",       # flake8-django
+    "PIE",      # flake8-pie
+    "SIM",      # flake8-simplify
+    "TID",      # flake8-tidy-imports
+]
+ignore = [
+    "E501",     # line too long — black handles
+    "S101",     # assert (pytest uses)
+    "S105",     # hardcoded password (false positives in default settings)
+    "B008",     # function call in argument default (Django needs it)
+    "DJ001",    # null=True for CharField (we want explicit)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "DJ"]
+"**/settings/**" = ["F403", "F405"]  # star imports
+"**/migrations/**" = ["E", "F", "W", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+combine-as-imports = true
+
+# -----------------------------------------------------------------------------
+# Mypy — type checker
+# -----------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = false
+ignore_missing_imports = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+exclude = ["migrations/", ".venv/", "media/", "staticfiles/"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings.development"
+
+# -----------------------------------------------------------------------------
+# Pytest — test runner
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--reuse-db",
+    "-ra",
+]
+markers = [
+    "slow: tests that take >1s",
+    "integration: integration tests (DB + Redis)",
+]
+
+# -----------------------------------------------------------------------------
+# Coverage
+# -----------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["apps", "config"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/.venv/*",
+    "manage.py",
+    "config/wsgi.py",
+    "config/asgi.py",
+]
+branch = true
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_covered = false

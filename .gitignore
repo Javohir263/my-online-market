@@ -1,0 +1,86 @@
+# =============================================================================
+# My Online Market — monorepo .gitignore
+# =============================================================================
+
+# ----- Secrets / env -----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ----- Python / Django (backend/) -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# Django
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/media/
+backend/staticfiles/
+backend/locale/*/LC_MESSAGES/*.mo
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.cache/
+.mypy_cache/
+.ruff_cache/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# ----- Node.js / Next.js (frontend/) -----
+node_modules/
+.next/
+out/
+.turbo/
+.swc/
+next-env.d.ts
+
+# Build artifacts
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ----- IDE / editors -----
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ----- Docker -----
+.docker/
+docker-compose.override.yml
+
+# ----- Misc -----
+*.log
+*.bak
+.cache
+.parcel-cache
+.eslintcache

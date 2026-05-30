@@ -1,0 +1,43 @@
+# =============================================================================
+# docker-compose.dev.yml — Faqat infra (postgres + redis) ni ko'taradi.
+# Web/Django'ni xost mashinada `python manage.py runserver` orqali ishlatamiz.
+# Dev iteratsiyasi tez bo'ladi (rebuild kerak emas).
+#
+# Foydalanish:
+#   docker compose -f docker-compose.dev.yml up -d
+#   python manage.py runserver
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mom-dev-postgres
+    environment:
+      POSTGRES_DB: mom
+      POSTGRES_USER: mom
+      POSTGRES_PASSWORD: mom
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mom -d mom"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mom-dev-redis
+    command: redis-server --save 60 1 --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
