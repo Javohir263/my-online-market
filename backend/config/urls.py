@@ -25,10 +25,11 @@ api_v1_patterns = [
     path("auth/", include("apps.authn.urls")),
     path("i18n/", include("apps.core.urls")),
     path("catalog/", include("apps.catalog.urls")),
-    # B7+ da boshqa apps shu yerga ulanadi.
+    path("cart/", include("apps.cart.urls")),
+    path("wishlist/", include("apps.wishlist.urls")),
+    # B8+ da:
     # path("accounts/", include("apps.accounts.urls")),
-    # path("cart/", include("apps.cart.urls")),
-    # ...
+    # path("orders/", include("apps.orders.urls")),
 ]
 
 urlpatterns = [

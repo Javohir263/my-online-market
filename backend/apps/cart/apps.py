@@ -1,4 +1,4 @@
-﻿from django.apps import AppConfig
+from django.apps import AppConfig
 
 
 class CartConfig(AppConfig):
@@ -6,3 +6,6 @@ class CartConfig(AppConfig):
     label = "cart"
     verbose_name = "Cart"
 
+    def ready(self) -> None:
+        # noqa: F401 — signal handlers import side effect
+        from apps.cart import signals  # noqa: F401
