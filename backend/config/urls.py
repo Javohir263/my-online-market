@@ -28,9 +28,10 @@ api_v1_patterns = [
     path("cart/", include("apps.cart.urls")),
     path("wishlist/", include("apps.wishlist.urls")),
     path("orders/", include("apps.orders.urls")),
-    # B9+ da:
+    path("reviews/", include("apps.reviews.urls")),
+    # B10+ da:
     # path("accounts/", include("apps.accounts.urls")),
-    # path("reviews/", include("apps.reviews.urls")),
+    # path("promotions/", include("apps.promotions.urls")),
 ]
 
 urlpatterns = [

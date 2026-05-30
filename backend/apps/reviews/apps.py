@@ -1,4 +1,4 @@
-﻿from django.apps import AppConfig
+from django.apps import AppConfig
 
 
 class ReviewsConfig(AppConfig):
@@ -6,3 +6,6 @@ class ReviewsConfig(AppConfig):
     label = "reviews"
     verbose_name = "Reviews"
 
+    def ready(self) -> None:
+        # Signal handlers — Product rating denorm
+        from apps.reviews import signals  # noqa: F401
