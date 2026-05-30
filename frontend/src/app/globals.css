@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ===========================================================================
+   My Online Market — Brand design tokens (Tailwind v4 @theme)
+   Premium luxury: bordoviy + bej + to'q yashil + xaki
+   =========================================================================== */
+@theme {
+  /* --- Primary: BORDOVIY (brand, CTA) --- */
+  --color-primary-50: #fdf2f4;
+  --color-primary-100: #fce7eb;
+  --color-primary-200: #f9cfd6;
+  --color-primary-300: #f3a3b1;
+  --color-primary-400: #e96b83;
+  --color-primary-500: #9b1c2d;
+  --color-primary-600: #7a142a;
+  --color-primary-700: #6b0f1a;
+  --color-primary-800: #5a0d18;
+  --color-primary-900: #4a0a14;
+
+  /* --- Neutral: BEJ (backgrounds, cards) --- */
+  --color-neutral-50: #fdfcf9;
+  --color-neutral-100: #f5f0e8;
+  --color-neutral-200: #efe5d5;
+  --color-neutral-300: #e6d8c0;
+  --color-neutral-400: #c4b394;
+  --color-neutral-500: #a08967;
+  --color-neutral-600: #8b7355;
+  --color-neutral-700: #6b5d3f;
+  --color-neutral-800: #4a4128;
+  --color-neutral-900: #2c2818;
+
+  /* --- Accent: TO'Q YASHIL (success, badges) --- */
+  --color-accent-400: #4a7c2a;
+  --color-accent-500: #2d5016;
+  --color-accent-600: #1f3a10;
+  --color-accent-700: #1b4332;
+  --color-accent-800: #143025;
+
+  /* --- Khaki (dividers, metadata) --- */
+  --color-khaki-500: #8b7355;
+  --color-khaki-600: #7a6549;
+  --color-khaki-700: #6b5d3f;
+
+  /* --- Gold/copper (hover highlights) --- */
+  --color-gold-400: #d4af37;
+  --color-gold-500: #c9a227;
+  --color-gold-600: #9c7f1f;
+
+  /* --- Fonts --- */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-playfair), Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* --- Soft shadows --- */
+  --shadow-soft: 0 2px 12px rgba(74, 10, 20, 0.06);
+  --shadow-card: 0 4px 20px rgba(74, 10, 20, 0.08);
+}
+
+/* ===========================================================================
+   shadcn/ui semantic tokens — brand'ga moslangan
+   =========================================================================== */
+:root {
+  --radius: 0.625rem;
+
+  --background: #fdfcf9; /* bej (neutral-50) */
+  --foreground: #2c2818; /* neutral-900 */
+  --card: #ffffff;
+  --card-foreground: #2c2818;
+  --popover: #ffffff;
+  --popover-foreground: #2c2818;
+
+  /* Primary = BORDOVIY */
+  --primary: #9b1c2d;
+  --primary-foreground: #ffffff;
+
+  /* Secondary = warm bej */
+  --secondary: #f5f0e8;
+  --secondary-foreground: #4a4128;
+
+  --muted: #f5f0e8;
+  --muted-foreground: #8b7355;
+
+  /* Accent = subtle bej (shadcn hover surfaces) */
+  --accent: #efe5d5;
+  --accent-foreground: #4a0a14;
+
+  --destructive: #dc2626;
+
+  --border: #e6d8c0;
+  --input: #e6d8c0;
+  --ring: #9b1c2d;
+
+  --sidebar: #fdfcf9;
+  --sidebar-foreground: #2c2818;
+  --sidebar-primary: #9b1c2d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #efe5d5;
+  --sidebar-accent-foreground: #4a0a14;
+  --sidebar-border: #e6d8c0;
+  --sidebar-ring: #9b1c2d;
+}
+
+.dark {
+  --background: #1a1612;
+  --foreground: #f5f0e8;
+  --card: #2c2818;
+  --card-foreground: #f5f0e8;
+  --popover: #2c2818;
+  --popover-foreground: #f5f0e8;
+  --primary: #e96b83;
+  --primary-foreground: #2c0a10;
+  --secondary: #4a4128;
+  --secondary-foreground: #f5f0e8;
+  --muted: #4a4128;
+  --muted-foreground: #c4b394;
+  --accent: #4a4128;
+  --accent-foreground: #f5f0e8;
+  --destructive: #ef4444;
+  --border: #4a4128;
+  --input: #4a4128;
+  --ring: #e96b83;
+  --sidebar: #2c2818;
+  --sidebar-foreground: #f5f0e8;
+  --sidebar-primary: #e96b83;
+  --sidebar-primary-foreground: #2c0a10;
+  --sidebar-accent: #4a4128;
+  --sidebar-accent-foreground: #f5f0e8;
+  --sidebar-border: #4a4128;
+  --sidebar-ring: #e96b83;
+}
+
+/* shadcn token → Tailwind utility mapping */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ===========================================================================
+   Base layer
+   =========================================================================== */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Premium scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
+}
+
+::selection {
+  background: var(--color-primary-500);
+  color: #fff;
+}
