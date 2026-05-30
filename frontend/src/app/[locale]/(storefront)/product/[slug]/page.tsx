@@ -6,7 +6,6 @@ import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { ProductRow } from "@/components/product/product-row";
 import { RatingStars } from "@/components/product/rating-stars";
-import { formatPrice } from "@/lib/format";
 import type { ProductDetail } from "@/types/api";
 
 export const revalidate = 60;
