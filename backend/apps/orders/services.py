@@ -249,9 +249,39 @@ def checkout_cart(
     else:
         addr_data = dict(shipping_address)
 
-    # 5. Order yaratish
+    # 5. Coupon — validate + calc (B10)
+    discount = Decimal("0.00")
+    coupon = None
+    if cart.coupon_id:
+        from apps.promotions import services as promo_services
+        from apps.promotions.exceptions import (
+            CouponExpired,
+            CouponInactive,
+            CouponLimitReached,
+            CouponMinNotMet,
+            CouponPerUserLimitReached,
+        )
+
+        try:
+            coupon = promo_services.validate_coupon(
+                code=cart.coupon.code, user=user, subtotal=subtotal
+            )
+            discount = promo_services.calc_discount(coupon, subtotal)
+        except (
+            CouponInactive,
+            CouponExpired,
+            CouponMinNotMet,
+            CouponLimitReached,
+            CouponPerUserLimitReached,
+        ):
+            # Coupon checkout paytida yaroqsiz bo'lib qolsa, sukut bilan
+            # tashlab yuboramiz — order coupon'siz davom etadi.
+            coupon = None
+
+    total = subtotal - discount
+
+    # 6. Order yaratish
     number = generate_order_number()
-    total = subtotal  # shipping + discount B10'da hisoblanadi
     order = Order.objects.create(
         number=number,
         user=user,
@@ -259,10 +289,11 @@ def checkout_cart(
         currency=getattr(settings, "DEFAULT_CURRENCY", "UZS"),
         subtotal=subtotal,
         shipping_cost=Decimal("0.00"),
-        discount_amount=Decimal("0.00"),
+        discount_amount=discount,
         total=total,
         shipping_address=addr_data,
         customer_note=customer_note,
+        coupon=coupon,
         idempotency_key=idempotency_key or None,
     )
 
@@ -270,10 +301,30 @@ def checkout_cart(
         [OrderItem(order=order, **data) for data in order_items_data]
     )
 
-    # 6. Cart clear
-    cart.items.all().delete()
+    # 6b. CouponUsage + used_count atomic
+    if coupon is not None:
+        from django.db.models import F
 
-    # 7. Cache idempotency
+        from apps.promotions.models import Coupon as CouponModel
+        from apps.promotions.models import CouponUsage
+
+        CouponUsage.objects.create(
+            coupon=coupon,
+            user=user,
+            order=order,
+            discount_applied=discount,
+        )
+        CouponModel.objects.filter(pk=coupon.pk).update(
+            used_count=F("used_count") + 1
+        )
+
+    # 7. Cart clear
+    cart.items.all().delete()
+    if cart.coupon_id:
+        cart.coupon = None
+        cart.save(update_fields=["coupon"])
+
+    # 8. Cache idempotency
     if idempotency_key:
         cache.set(
             IDEMPOTENCY_CACHE_PREFIX + idempotency_key,

@@ -37,6 +37,14 @@ class Cart(TimeStampedModel):
         unique=True,
     )
 
+    coupon = models.ForeignKey(
+        "promotions.Coupon",
+        on_delete=models.SET_NULL,
+        related_name="carts",
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         verbose_name = _("cart")
         verbose_name_plural = _("carts")
@@ -65,6 +73,22 @@ class Cart(TimeStampedModel):
         for item in self.items.all():
             total += item.line_total
         return total
+
+    @property
+    def discount_amount(self) -> Decimal:
+        """Coupon orqali chegirma. Coupon yo'q bo'lsa 0."""
+        if not self.coupon_id:
+            return Decimal("0.00")
+        from apps.promotions.services import calc_discount
+
+        try:
+            return calc_discount(self.coupon, self.subtotal)
+        except Exception:
+            return Decimal("0.00")
+
+    @property
+    def total(self) -> Decimal:
+        return self.subtotal - self.discount_amount
 
 
 class CartItem(TimeStampedModel):

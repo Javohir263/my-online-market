@@ -21,10 +21,12 @@ from apps.cart.exceptions import CartItemNotFound
 from apps.cart.models import CartItem
 from apps.cart.serializers import (
     AddCartItemSerializer,
+    ApplyCouponSerializer,
     CartItemSerializer,
     CartSerializer,
     UpdateCartItemSerializer,
 )
+from apps.promotions import services as promo_services
 
 
 class CartDetailView(APIView):
@@ -97,6 +99,46 @@ class CartItemDetailView(APIView):
         item = self._get_item(request, pk)
         services.remove_item(item)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CartCouponView(APIView):
+    """`POST /cart/coupon/apply/` + `DELETE /cart/coupon/`.
+
+    POST — kupon kodini cart'ga ulaydi. DELETE — uzadi.
+    Anonim ham, auth ham ishlatishi mumkin.
+    """
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        request=ApplyCouponSerializer,
+        responses={200: CartSerializer},
+    )
+    def post(self, request):
+        serializer = ApplyCouponSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        cart = services.resolve_cart(request)
+        coupon = promo_services.validate_coupon(
+            code=serializer.validated_data["code"],
+            user=request.user if request.user.is_authenticated else None,
+            subtotal=cart.subtotal,
+        )
+        cart.coupon = coupon
+        cart.save(update_fields=["coupon"])
+        return Response(
+            CartSerializer(cart, context={"request": request}).data
+        )
+
+    @extend_schema(responses={200: CartSerializer})
+    def delete(self, request):
+        cart = services.resolve_cart(request)
+        if cart.coupon_id is not None:
+            cart.coupon = None
+            cart.save(update_fields=["coupon"])
+        return Response(
+            CartSerializer(cart, context={"request": request}).data
+        )
 
 
 class CartMergeView(APIView):

@@ -77,17 +77,45 @@ class CartItemSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class CartCouponSerializer(serializers.Serializer):
+    code = serializers.CharField(read_only=True)
+    type = serializers.CharField(read_only=True)
+    value = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+
+
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
     items_count = serializers.IntegerField(read_only=True)
     subtotal = serializers.DecimalField(
         max_digits=14, decimal_places=2, read_only=True
     )
+    discount_amount = serializers.DecimalField(
+        max_digits=14, decimal_places=2, read_only=True
+    )
+    total = serializers.DecimalField(
+        max_digits=14, decimal_places=2, read_only=True
+    )
+    coupon = CartCouponSerializer(read_only=True)
 
     class Meta:
         model = Cart
-        fields = ("id", "items", "items_count", "subtotal", "updated_at")
+        fields = (
+            "id",
+            "items",
+            "items_count",
+            "subtotal",
+            "discount_amount",
+            "total",
+            "coupon",
+            "updated_at",
+        )
         read_only_fields = fields
+
+
+class ApplyCouponSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=64)
 
 
 # =============================================================================
