@@ -253,10 +253,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # Custom JWT-in-cookie auth (B3 da yaratiladi):
-        # "apps.authn.authentication.CookieJWTAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        "apps.authn.authentication.CookieJWTAuthentication",  # primary (httpOnly cookies)
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # fallback (header)
+        "rest_framework.authentication.SessionAuthentication",  # admin / DRF browsable
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
@@ -275,6 +274,13 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/min",
         "user": "240/min",
+        # Auth scopes
+        "register": "10/hour",
+        "login": "20/min",
+        "login_email": "5/min",  # per-email (anti brute-force)
+        "otp_send": "5/hour",
+        "otp_verify": "10/hour",
+        "password_reset": "5/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": [

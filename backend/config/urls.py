@@ -22,8 +22,8 @@ from apps.core.views import healthcheck
 API_PREFIX = "api/v1/"
 
 api_v1_patterns = [
-    # B2+ da apps url'lari shu yerga ulanadi.
-    # path("auth/", include("apps.authn.urls")),
+    path("auth/", include("apps.authn.urls")),
+    # B4+ da boshqa apps shu yerga ulanadi.
     # path("accounts/", include("apps.accounts.urls")),
     # path("catalog/", include("apps.catalog.urls")),
     # ...
