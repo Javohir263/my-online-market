@@ -30,9 +30,10 @@ api_v1_patterns = [
     path("orders/", include("apps.orders.urls")),
     path("reviews/", include("apps.reviews.urls")),
     path("promotions/", include("apps.promotions.urls")),
-    # B11+ da:
+    path("notifications/", include("apps.notifications.urls")),
+    # B12+ da:
     # path("accounts/", include("apps.accounts.urls")),
-    # path("notifications/", include("apps.notifications.urls")),
+    # path("payments/", include("apps.payments.urls")),
 ]
 
 urlpatterns = [

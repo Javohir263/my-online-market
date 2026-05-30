@@ -112,33 +112,18 @@ def verify_otp(
 
 
 # =============================================================================
-# Email sender (sync; B11 da Celery'ga ko'chiriladi)
+# Email sender (B11'da Celery task'ga delegate qilindi)
 # =============================================================================
 def send_otp_email(target: str, raw_code: str, purpose: str) -> None:
-    """Email orqali OTP yuboradi.
+    """OTP'ni asinxron Celery task orqali yuboradi.
 
-    Dev'da `console.EmailBackend` — terminalga chiqadi.
-    Prod'da SMTP / Mailgun via django-anymail.
+    Test settings'da `CELERY_TASK_ALWAYS_EAGER=True` — sync ishlaydi.
+    Production'da Redis broker orqali worker'ga uzatiladi.
     """
-    subject_by_purpose = {
-        OtpCode.Purpose.EMAIL_VERIFY: _("Email tasdiqlash kodi"),
-        OtpCode.Purpose.PASSWORD_RESET: _("Parolni tiklash kodi"),
-        OtpCode.Purpose.LOGIN: _("Tizimga kirish kodi"),
-    }
-    subject = subject_by_purpose.get(purpose, _("Tasdiqlash kodi"))
-    message = _(
-        "Sizning bir martalik kodingiz: %(code)s\n\n"
-        "Kod %(minutes)d daqiqa amal qiladi."
-    ) % {"code": raw_code, "minutes": OtpCode.DEFAULT_TTL_MINUTES}
+    from apps.notifications.tasks import send_otp_email_task
 
-    send_mail(
-        subject=str(subject),
-        message=str(message),
-        from_email=None,  # uses DEFAULT_FROM_EMAIL
-        recipient_list=[target],
-        fail_silently=False,
-    )
-    logger.info("OTP email queued: target=%s purpose=%s", target, purpose)
+    send_otp_email_task.delay(target, raw_code, purpose)
+    logger.info("OTP email enqueued: target=%s purpose=%s", target, purpose)
 
 
 # =============================================================================

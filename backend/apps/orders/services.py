@@ -338,6 +338,15 @@ def checkout_cart(
         user.email,
         total,
     )
+
+    # 9. Notification + async confirmation email
+    try:
+        from apps.notifications.services import notify_order_created
+
+        notify_order_created(order)
+    except Exception:  # noqa: BLE001
+        logger.exception("notify_order_created failed for %s", order.number)
+
     return order
 
 
