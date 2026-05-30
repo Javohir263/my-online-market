@@ -8,11 +8,14 @@ import { Logo } from "./logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUIStore } from "@/store/ui";
+import { useCart } from "@/hooks/useCart";
 
 export function Header() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const toggleMobileMenu = useUIStore((s) => s.toggleMobileMenu);
+  const { data: cart } = useCart();
+  const cartCount = cart?.items_count ?? 0;
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +86,11 @@ export function Header() {
           <Link href="/cart" aria-label="Savat">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary-500 px-1 text-[10px] font-semibold text-white">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Button>
           </Link>
           <Link href="/account" aria-label="Akkaunt">
