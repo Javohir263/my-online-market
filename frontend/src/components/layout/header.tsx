@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Heart, Menu, Search, ShoppingBag, User2 } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUIStore } from "@/store/ui";
 import { useCart } from "@/hooks/useCart";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function Header() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export function Header() {
               Buyurtmalarim
             </Link>
             <span className="text-neutral-300">|</span>
-            <span>uz / ru / en</span>
+            <LanguageSwitcher />
           </div>
         </div>
       </div>

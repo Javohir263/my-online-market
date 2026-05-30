@@ -1,0 +1,120 @@
+{
+  "common": {
+    "search": "Поиск",
+    "searchPlaceholder": "Поиск товаров...",
+    "addToCart": "В корзину",
+    "addedToCart": "Добавлено в корзину",
+    "buyNow": "Купить сейчас",
+    "price": "Цена",
+    "total": "Итого",
+    "subtotal": "Товары",
+    "discount": "Скидка",
+    "inStock": "В наличии",
+    "outOfStock": "Нет в наличии",
+    "loading": "Загрузка...",
+    "viewAll": "Все",
+    "apply": "Применить",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "back": "Назад",
+    "currency": "сум"
+  },
+  "header": {
+    "delivery": "Доставка по всему Узбекистану",
+    "orders": "Мои заказы",
+    "wishlist": "Избранное",
+    "cart": "Корзина",
+    "account": "Аккаунт"
+  },
+  "footer": {
+    "tagline": "Премиум онлайн-маркетплейс — качественные товары, надёжная доставка.",
+    "forCustomers": "Покупателям",
+    "company": "Компания",
+    "help": "Помощь",
+    "rights": "Все права защищены."
+  },
+  "home": {
+    "heroLabel": "Премиум маркетплейс",
+    "heroTitle": "Качество и изящество — в одном месте",
+    "heroSubtitle": "My Online Market — современный интернет-магазин лучших товаров по доступным ценам.",
+    "shopNow": "За покупками",
+    "browseCatalog": "Смотреть каталог",
+    "categories": "Категории",
+    "featured": "Избранные товары",
+    "newArrivals": "Новинки",
+    "bestsellers": "Хиты продаж",
+    "fastDelivery": "Быстрая доставка",
+    "fastDeliveryText": "По всему Узбекистану за 1-3 дня.",
+    "securePayment": "Безопасная оплата",
+    "securePaymentText": "Click, Payme или наличные.",
+    "premiumQuality": "Премиум качество",
+    "premiumQualityText": "Проверенные продавцы.",
+    "emptyTitle": "Пока нет товаров"
+  },
+  "catalog": {
+    "title": "Каталог",
+    "filters": "Фильтры",
+    "clear": "Очистить",
+    "category": "Категория",
+    "brand": "Бренд",
+    "priceRange": "Цена (сум)",
+    "rating": "Рейтинг",
+    "inStockOnly": "Только в наличии",
+    "found": "Найдено {count} товаров",
+    "notFound": "Товары не найдены",
+    "sortNew": "Новые",
+    "sortPopular": "Популярные",
+    "sortPriceAsc": "Цена: по возрастанию",
+    "sortPriceDesc": "Цена: по убыванию",
+    "sortRating": "Рейтинг"
+  },
+  "product": {
+    "description": "Описание",
+    "attributes": "Характеристики",
+    "similar": "Похожие товары",
+    "color": "Цвет",
+    "size": "Размер",
+    "reviews": "Отзывы"
+  },
+  "cart": {
+    "title": "Корзина",
+    "empty": "Корзина пуста",
+    "emptyText": "Добавьте товары и начните покупки.",
+    "couponCode": "Промокод",
+    "checkout": "Оформить заказ",
+    "summary": "Итоги заказа"
+  },
+  "checkout": {
+    "title": "Оформление заказа",
+    "address": "Адрес доставки",
+    "addAddress": "Добавить адрес",
+    "note": "Комментарий (необязательно)",
+    "placeOrder": "Оформить заказ",
+    "payOnDelivery": "Оплата: при доставке (симуляция)"
+  },
+  "auth": {
+    "loginTitle": "Вход в систему",
+    "loginSubtitle": "Войдите в аккаунт и продолжите покупки.",
+    "registerTitle": "Регистрация",
+    "registerSubtitle": "Создайте новый аккаунт и начните покупки.",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "fullName": "Полное имя",
+    "login": "Войти",
+    "register": "Зарегистрироваться",
+    "noAccount": "Нет аккаунта?",
+    "haveAccount": "Уже есть аккаунт?"
+  },
+  "account": {
+    "profile": "Профиль",
+    "orders": "Заказы",
+    "addresses": "Адреса",
+    "logout": "Выйти",
+    "phone": "Телефон",
+    "language": "Язык",
+    "noOrders": "Нет заказов",
+    "noAddresses": "Нет адресов"
+  }
+}

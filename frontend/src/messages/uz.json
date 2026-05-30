@@ -1,0 +1,120 @@
+{
+  "common": {
+    "search": "Qidirish",
+    "searchPlaceholder": "Mahsulot qidirish...",
+    "addToCart": "Savatga qo'shish",
+    "addedToCart": "Savatga qo'shildi",
+    "buyNow": "Hozir sotib olish",
+    "price": "Narx",
+    "total": "Jami",
+    "subtotal": "Mahsulotlar",
+    "discount": "Chegirma",
+    "inStock": "Mavjud",
+    "outOfStock": "Tugagan",
+    "loading": "Yuklanmoqda...",
+    "viewAll": "Barchasi",
+    "apply": "Qo'llash",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "back": "Orqaga",
+    "currency": "so'm"
+  },
+  "header": {
+    "delivery": "Butun O'zbekiston bo'ylab yetkazib berish",
+    "orders": "Buyurtmalarim",
+    "wishlist": "Sevimlilar",
+    "cart": "Savatcha",
+    "account": "Akkaunt"
+  },
+  "footer": {
+    "tagline": "Premium online marketplace — sifatli mahsulotlar, ishonchli yetkazib berish.",
+    "forCustomers": "Xaridorlarga",
+    "company": "Kompaniya",
+    "help": "Yordam",
+    "rights": "Barcha huquqlar himoyalangan."
+  },
+  "home": {
+    "heroLabel": "Premium marketplace",
+    "heroTitle": "Sifat va nafosat — bir joyda",
+    "heroSubtitle": "My Online Market — eng yaxshi mahsulotlarni qulay narxlarda taqdim etadigan zamonaviy onlayn do'kon.",
+    "shopNow": "Xarid qilish",
+    "browseCatalog": "Katalogni ko'rish",
+    "categories": "Kategoriyalar",
+    "featured": "Tanlangan mahsulotlar",
+    "newArrivals": "Yangi kelganlar",
+    "bestsellers": "Eng ko'p sotilganlar",
+    "fastDelivery": "Tez yetkazib berish",
+    "fastDeliveryText": "Butun O'zbekiston bo'ylab 1-3 kun.",
+    "securePayment": "Xavfsiz to'lov",
+    "securePaymentText": "Click, Payme yoki naqd.",
+    "premiumQuality": "Premium sifat",
+    "premiumQualityText": "Tekshirilgan sotuvchilar.",
+    "emptyTitle": "Hozircha mahsulotlar yo'q"
+  },
+  "catalog": {
+    "title": "Katalog",
+    "filters": "Filtrlar",
+    "clear": "Tozalash",
+    "category": "Kategoriya",
+    "brand": "Brend",
+    "priceRange": "Narx (so'm)",
+    "rating": "Reyting",
+    "inStockOnly": "Faqat mavjudlari",
+    "found": "{count} ta mahsulot topildi",
+    "notFound": "Mahsulot topilmadi",
+    "sortNew": "Yangi",
+    "sortPopular": "Ommabop",
+    "sortPriceAsc": "Narx: arzondan",
+    "sortPriceDesc": "Narx: qimmatdan",
+    "sortRating": "Reyting"
+  },
+  "product": {
+    "description": "Tavsif",
+    "attributes": "Xususiyatlar",
+    "similar": "O'xshash mahsulotlar",
+    "color": "Rang",
+    "size": "O'lcham",
+    "reviews": "Sharhlar"
+  },
+  "cart": {
+    "title": "Savatcha",
+    "empty": "Savatcha bo'sh",
+    "emptyText": "Mahsulot qo'shing va xaridni boshlang.",
+    "couponCode": "Kupon kodi",
+    "checkout": "Rasmiylashtirish",
+    "summary": "Buyurtma xulosasi"
+  },
+  "checkout": {
+    "title": "Rasmiylashtirish",
+    "address": "Yetkazib berish manzili",
+    "addAddress": "Manzil qo'shish",
+    "note": "Izoh (ixtiyoriy)",
+    "placeOrder": "Buyurtma berish",
+    "payOnDelivery": "To'lov: yetkazib berishda (simulyatsiya)"
+  },
+  "auth": {
+    "loginTitle": "Tizimga kirish",
+    "loginSubtitle": "Akkauntingizga kiring va xaridni davom ettiring.",
+    "registerTitle": "Ro'yxatdan o'tish",
+    "registerSubtitle": "Yangi akkaunt yarating va xaridni boshlang.",
+    "email": "Email",
+    "password": "Parol",
+    "confirmPassword": "Parolni tasdiqlang",
+    "fullName": "To'liq ism",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "noAccount": "Akkauntingiz yo'qmi?",
+    "haveAccount": "Akkauntingiz bormi?"
+  },
+  "account": {
+    "profile": "Profil",
+    "orders": "Buyurtmalar",
+    "addresses": "Manzillar",
+    "logout": "Chiqish",
+    "phone": "Telefon",
+    "language": "Til",
+    "noOrders": "Buyurtmalar yo'q",
+    "noAddresses": "Manzillar yo'q"
+  }
+}

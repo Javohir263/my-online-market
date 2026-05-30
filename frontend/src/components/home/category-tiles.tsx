@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import * as Icons from "lucide-react";
 import type { CategoryNode } from "@/types/api";
 

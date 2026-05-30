@@ -1,0 +1,120 @@
+{
+  "common": {
+    "search": "Search",
+    "searchPlaceholder": "Search products...",
+    "addToCart": "Add to cart",
+    "addedToCart": "Added to cart",
+    "buyNow": "Buy now",
+    "price": "Price",
+    "total": "Total",
+    "subtotal": "Items",
+    "discount": "Discount",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "loading": "Loading...",
+    "viewAll": "View all",
+    "apply": "Apply",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "back": "Back",
+    "currency": "UZS"
+  },
+  "header": {
+    "delivery": "Delivery across Uzbekistan",
+    "orders": "My orders",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "account": "Account"
+  },
+  "footer": {
+    "tagline": "Premium online marketplace — quality products, reliable delivery.",
+    "forCustomers": "For customers",
+    "company": "Company",
+    "help": "Help",
+    "rights": "All rights reserved."
+  },
+  "home": {
+    "heroLabel": "Premium marketplace",
+    "heroTitle": "Quality and elegance — in one place",
+    "heroSubtitle": "My Online Market — a modern online store offering the best products at affordable prices.",
+    "shopNow": "Shop now",
+    "browseCatalog": "Browse catalog",
+    "categories": "Categories",
+    "featured": "Featured products",
+    "newArrivals": "New arrivals",
+    "bestsellers": "Bestsellers",
+    "fastDelivery": "Fast delivery",
+    "fastDeliveryText": "Across Uzbekistan in 1-3 days.",
+    "securePayment": "Secure payment",
+    "securePaymentText": "Click, Payme or cash.",
+    "premiumQuality": "Premium quality",
+    "premiumQualityText": "Verified sellers.",
+    "emptyTitle": "No products yet"
+  },
+  "catalog": {
+    "title": "Catalog",
+    "filters": "Filters",
+    "clear": "Clear",
+    "category": "Category",
+    "brand": "Brand",
+    "priceRange": "Price (UZS)",
+    "rating": "Rating",
+    "inStockOnly": "In stock only",
+    "found": "{count} products found",
+    "notFound": "No products found",
+    "sortNew": "New",
+    "sortPopular": "Popular",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "sortRating": "Rating"
+  },
+  "product": {
+    "description": "Description",
+    "attributes": "Specifications",
+    "similar": "Similar products",
+    "color": "Color",
+    "size": "Size",
+    "reviews": "Reviews"
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "emptyText": "Add products and start shopping.",
+    "couponCode": "Coupon code",
+    "checkout": "Checkout",
+    "summary": "Order summary"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "address": "Delivery address",
+    "addAddress": "Add address",
+    "note": "Note (optional)",
+    "placeOrder": "Place order",
+    "payOnDelivery": "Payment: on delivery (simulation)"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Sign in to your account and continue shopping.",
+    "registerTitle": "Sign up",
+    "registerSubtitle": "Create a new account and start shopping.",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "fullName": "Full name",
+    "login": "Sign in",
+    "register": "Sign up",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?"
+  },
+  "account": {
+    "profile": "Profile",
+    "orders": "Orders",
+    "addresses": "Addresses",
+    "logout": "Log out",
+    "phone": "Phone",
+    "language": "Language",
+    "noOrders": "No orders",
+    "noAddresses": "No addresses"
+  }
+}

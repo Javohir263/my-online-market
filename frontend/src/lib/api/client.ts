@@ -37,6 +37,13 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       config.headers.set("X-CSRFToken", csrf);
     }
   }
+  // Active locale → backend modeltranslation shu tilda content qaytaradi
+  if (typeof document !== "undefined") {
+    config.headers.set(
+      "Accept-Language",
+      document.documentElement.lang || "uz",
+    );
+  }
   return config;
 });
 

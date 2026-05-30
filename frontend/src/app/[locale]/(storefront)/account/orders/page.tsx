@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Package } from "lucide-react";
 import { ordersApi } from "@/lib/api/endpoints";
