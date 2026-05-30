@@ -14,6 +14,7 @@ export function Header() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const toggleMobileMenu = useUIStore((s) => s.toggleMobileMenu);
+  const openCart = useUIStore((s) => s.openCart);
   const { data: cart } = useCart();
   const cartCount = cart?.items_count ?? 0;
 
@@ -83,16 +84,20 @@ export function Header() {
               <Heart className="h-5 w-5" />
             </Button>
           </Link>
-          <Link href="/cart" aria-label="Savat">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingBag className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary-500 px-1 text-[10px] font-semibold text-white">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            onClick={openCart}
+            aria-label="Savat"
+          >
+            <ShoppingBag className="h-5 w-5" />
+            {cartCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary-500 px-1 text-[10px] font-semibold text-white">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
+          </Button>
           <Link href="/account" aria-label="Akkaunt">
             <Button variant="ghost" size="icon">
               <User2 className="h-5 w-5" />

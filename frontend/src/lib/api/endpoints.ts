@@ -115,4 +115,50 @@ export const ordersApi = {
           : undefined,
       })
       .then((r) => r.data),
+
+  cancel: (number: string, reason?: string) =>
+    api.post(`/orders/${number}/cancel/`, { reason }).then((r) => r.data),
+};
+
+// --- Account ---
+export interface Address {
+  id: number;
+  type: string;
+  recipient_name: string;
+  recipient_phone: string;
+  region: string;
+  city: string;
+  district: string;
+  street: string;
+  building: string;
+  apartment: string;
+  postal_code: string;
+  landmark: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export const accountsApi = {
+  profile: () => api.get<User>("/accounts/profile/").then((r) => r.data),
+
+  updateProfile: (data: Partial<User>) =>
+    api.patch<User>("/accounts/profile/", data).then((r) => r.data),
+
+  changePassword: (data: {
+    old_password: string;
+    new_password: string;
+    new_password_confirm: string;
+  }) => api.put("/accounts/profile/password/", data).then((r) => r.data),
+
+  addresses: () =>
+    api.get<Address[]>("/accounts/addresses/").then((r) => r.data),
+
+  createAddress: (data: Partial<Address>) =>
+    api.post<Address>("/accounts/addresses/", data).then((r) => r.data),
+
+  updateAddress: (id: number, data: Partial<Address>) =>
+    api.patch<Address>(`/accounts/addresses/${id}/`, data).then((r) => r.data),
+
+  deleteAddress: (id: number) =>
+    api.delete(`/accounts/addresses/${id}/`).then((r) => r.data),
 };
