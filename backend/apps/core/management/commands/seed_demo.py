@@ -211,6 +211,7 @@ class Command(BaseCommand):
         self.stdout.write("Banner + kuponlar...")
         self._seed_banners()
         self._seed_coupons()
+        self._seed_demo_user()
 
         for cat in Category.objects.all():
             cat.products_count = Product.objects.filter(
@@ -373,6 +374,17 @@ class Command(BaseCommand):
                         b.image.save(f"banner-{o}.jpg", ContentFile(r.content), save=True)
                 except requests.RequestException:
                     pass
+
+    def _seed_demo_user(self) -> None:
+        """Frontend'da sinab ko'rish uchun tayyor customer akkaunt."""
+        u, _ = User.objects.get_or_create(
+            email="demo@demo.uz",
+            defaults={"full_name": "Demo Mijoz", "is_email_verified": True},
+        )
+        u.set_password("Demo1234!")
+        u.is_email_verified = True
+        u.save()
+        self.stdout.write("  demo login: demo@demo.uz / Demo1234!")
 
     def _seed_coupons(self) -> None:
         Coupon.objects.update_or_create(
