@@ -174,6 +174,12 @@ CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 # ---------------------------------------------------------------------------
 AUTH_USER_MODEL = "accounts.User"
 
+# Email login — case-insensitive ("User@x.com" == "user@x.com")
+AUTHENTICATION_BACKENDS = [
+    "apps.accounts.backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",  # fallback (admin sessions)
+]
+
 # Argon2 birinchi — modern, GPU-resistant
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
