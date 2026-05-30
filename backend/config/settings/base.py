@@ -42,12 +42,16 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS")
 # ---------------------------------------------------------------------------
 DJANGO_APPS = [
     "modeltranslation",  # MUST be before django.contrib.admin
+    # admin_interface MUST be before admin (template override)
+    "admin_interface",
+    "colorfield",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 ]
 
 THIRD_PARTY_APPS = [

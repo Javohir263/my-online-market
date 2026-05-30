@@ -1,0 +1,71 @@
+{% extends "admin/index.html" %}
+{% load i18n humanize %}
+
+{% block content %}
+{% if mom_dashboard %}
+<div class="mom-dashboard" style="margin-bottom:24px;">
+  <h2 style="margin:0 0 12px 0;font-family:'Playfair Display',Georgia,serif;color:#4a0a14;">
+    {% trans "Marketplace overview" %}
+  </h2>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+    <div style="background:linear-gradient(135deg,#9b1c2d 0%,#7a142a 100%);color:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+      <div style="font-size:12px;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">{% trans "Today's orders" %}</div>
+      <div style="font-size:32px;font-weight:600;margin-top:6px;">{{ mom_dashboard.orders_today }}</div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#a08967 0%,#6b5d3f 100%);color:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+      <div style="font-size:12px;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">{% trans "Pending orders" %}</div>
+      <div style="font-size:32px;font-weight:600;margin-top:6px;">{{ mom_dashboard.orders_pending }}</div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#2d5016 0%,#1b4332 100%);color:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+      <div style="font-size:12px;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">{% trans "7-day revenue" %}</div>
+      <div style="font-size:24px;font-weight:600;margin-top:6px;">{{ mom_dashboard.revenue_7d|floatformat:"0"|intcomma }} UZS</div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);color:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+      <div style="font-size:12px;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">{% trans "Low stock" %}</div>
+      <div style="font-size:32px;font-weight:600;margin-top:6px;">{{ mom_dashboard.low_stock_count }}</div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#c9a227 0%,#9c7f1f 100%);color:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+      <div style="font-size:12px;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">{% trans "Pending reviews" %}</div>
+      <div style="font-size:32px;font-weight:600;margin-top:6px;">{{ mom_dashboard.pending_reviews }}</div>
+    </div>
+  </div>
+
+  {% if mom_dashboard.recent_orders %}
+  <div style="background:#fdfcf9;border:1px solid #efe5d5;border-radius:10px;padding:16px;margin-bottom:24px;">
+    <h3 style="margin:0 0 10px 0;font-family:'Playfair Display',Georgia,serif;color:#4a0a14;font-size:16px;">
+      {% trans "Recent orders" %}
+    </h3>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:1px solid #efe5d5;text-align:left;color:#6b5d3f;">
+          <th style="padding:6px 4px;font-weight:500;">#</th>
+          <th style="padding:6px 4px;font-weight:500;">{% trans "User" %}</th>
+          <th style="padding:6px 4px;font-weight:500;">{% trans "Status" %}</th>
+          <th style="padding:6px 4px;font-weight:500;text-align:right;">{% trans "Total" %}</th>
+          <th style="padding:6px 4px;font-weight:500;">{% trans "Created" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in mom_dashboard.recent_orders %}
+        <tr style="border-bottom:1px solid #f5f0e8;">
+          <td style="padding:8px 4px;"><a href="/admin/orders/order/{{ o.id }}/change/" style="color:#9b1c2d;">{{ o.number }}</a></td>
+          <td style="padding:8px 4px;">{{ o.user.email }}</td>
+          <td style="padding:8px 4px;">{{ o.get_status_display }}</td>
+          <td style="padding:8px 4px;text-align:right;">{{ o.total|floatformat:"0"|intcomma }} {{ o.currency }}</td>
+          <td style="padding:8px 4px;color:#6b5d3f;">{{ o.created_at|date:"d M, H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

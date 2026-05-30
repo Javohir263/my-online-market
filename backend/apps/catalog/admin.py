@@ -18,6 +18,7 @@ from apps.catalog.models import (
     ProductTag,
     ProductVariant,
 )
+from apps.core.admin_helpers import image_thumb_html
 
 
 # =============================================================================
@@ -26,6 +27,7 @@ from apps.catalog.models import (
 @admin.register(Category)
 class CategoryAdmin(TranslationAdmin):
     list_display = (
+        "image_thumb",
         "indented_name",
         "slug",
         "parent",
@@ -33,6 +35,12 @@ class CategoryAdmin(TranslationAdmin):
         "order",
         "is_active",
     )
+
+    @admin.display(description="Img")
+    def image_thumb(self, obj):
+        url = obj.image.url if obj.image else ""
+        return image_thumb_html(url, size=40)
+
     list_filter = ("is_active",)
     search_fields = ("name", "slug")
     list_editable = ("order", "is_active")
@@ -51,7 +59,13 @@ class CategoryAdmin(TranslationAdmin):
 # =============================================================================
 @admin.register(Brand)
 class BrandAdmin(TranslationAdmin):
-    list_display = ("name", "slug", "is_active", "created_at")
+    list_display = ("logo_thumb", "name", "slug", "is_active", "created_at")
+
+    @admin.display(description="Logo")
+    def logo_thumb(self, obj):
+        url = obj.logo.url if obj.logo else ""
+        return image_thumb_html(url, size=40)
+
     list_filter = ("is_active",)
     search_fields = ("name", "slug")
     list_editable = ("is_active",)
@@ -94,7 +108,14 @@ class ProductTagAdmin(TranslationAdmin):
 class ProductImageInline(TranslationStackedInline):
     model = ProductImage
     extra = 0
-    fields = ("image", "alt_text", "order", "is_primary")
+    fields = ("image", "image_preview", "alt_text", "order", "is_primary")
+    readonly_fields = ("image_preview",)
+
+    @admin.display(description="Preview")
+    def image_preview(self, obj):
+        url = obj.image.url if obj.image else ""
+        return image_thumb_html(url, size=80)
+
 
 
 class ProductVariantInline(admin.TabularInline):

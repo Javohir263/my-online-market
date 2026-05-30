@@ -32,6 +32,10 @@ drf-spectacular-sidecar>=2024.7.1
 # --- i18n (uz/ru/en) ---
 django-modeltranslation>=0.19,<1.0
 
+# --- Admin polish ---
+django-admin-interface>=0.29,<1.0
+django-colorfield>=0.11,<1.0
+
 # --- Media storage (Cloudinary CDN) ---
 cloudinary>=1.41,<2.0
 django-cloudinary-storage>=0.3,<1.0

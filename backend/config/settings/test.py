@@ -39,3 +39,15 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # Disable debug-toolbar in tests if it sneaks in
 # ---------------------------------------------------------------------------
 DEBUG = False
+
+# ---------------------------------------------------------------------------
+# Staticfiles — manifest yo'q (testlar `collectstatic` qilmaydi)
+# ---------------------------------------------------------------------------
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

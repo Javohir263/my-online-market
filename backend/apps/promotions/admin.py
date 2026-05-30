@@ -7,12 +7,14 @@ from __future__ import annotations
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin
 
+from apps.core.admin_helpers import image_thumb_html
 from apps.promotions.models import Banner, Coupon, CouponUsage
 
 
 @admin.register(Banner)
 class BannerAdmin(TranslationAdmin):
     list_display = (
+        "image_thumb",
         "id",
         "position",
         "title",
@@ -21,6 +23,12 @@ class BannerAdmin(TranslationAdmin):
         "valid_from",
         "valid_to",
     )
+
+    @admin.display(description="Image")
+    def image_thumb(self, obj):
+        url = obj.image.url if obj.image else ""
+        return image_thumb_html(url, size=60)
+
     list_filter = ("position", "is_active")
     list_editable = ("order", "is_active")
     search_fields = ("title", "subtitle")
