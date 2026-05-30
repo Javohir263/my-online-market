@@ -172,8 +172,7 @@ CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 # ---------------------------------------------------------------------------
 # Authentication
 # ---------------------------------------------------------------------------
-# AUTH_USER_MODEL — B2 da custom User model yaratilgandan keyin uncomment qilinadi.
-# AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "accounts.User"
 
 # Argon2 birinchi — modern, GPU-resistant
 PASSWORD_HASHERS = [
