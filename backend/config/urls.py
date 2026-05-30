@@ -24,9 +24,10 @@ API_PREFIX = "api/v1/"
 api_v1_patterns = [
     path("auth/", include("apps.authn.urls")),
     path("i18n/", include("apps.core.urls")),
-    # B5+ da boshqa apps shu yerga ulanadi.
+    path("catalog/", include("apps.catalog.urls")),
+    # B7+ da boshqa apps shu yerga ulanadi.
     # path("accounts/", include("apps.accounts.urls")),
-    # path("catalog/", include("apps.catalog.urls")),
+    # path("cart/", include("apps.cart.urls")),
     # ...
 ]
 
