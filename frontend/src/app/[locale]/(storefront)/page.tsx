@@ -2,33 +2,84 @@ import { ShieldCheck, Truck, Sparkles } from "lucide-react";
 import { serverCatalog, serverPromotions, safe } from "@/lib/api/server";
 import { HeroBanner } from "@/components/home/hero-banner";
 import { CategoryTiles } from "@/components/home/category-tiles";
+import { PromoStrip } from "@/components/home/promo-strip";
+import { BrandStrip } from "@/components/home/brand-strip";
 import { ProductRow } from "@/components/product/product-row";
 
 export const revalidate = 120;
 
 const FEATURES = [
-  { icon: Truck, title: "Tez yetkazib berish", text: "Butun O'zbekiston bo'ylab 1-3 kun." },
-  { icon: ShieldCheck, title: "Xavfsiz to'lov", text: "Click, Payme yoki naqd." },
-  { icon: Sparkles, title: "Premium sifat", text: "Tekshirilgan sotuvchilar." },
+  {
+    icon: Truck,
+    title: "Tez yetkazib berish",
+    text: "Butun O'zbekiston bo'ylab 1-3 kun ichida.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Xavfsiz to'lov",
+    text: "Click, Payme yoki naqd to'lov.",
+  },
+  {
+    icon: Sparkles,
+    title: "Premium sifat",
+    text: "Tekshirilgan sotuvchilardan original mahsulot.",
+  },
 ];
 
 export default async function HomePage() {
-  const [banners, categories, featured, newArrivals, bestsellers] =
+  const [banners, categories, brands, featured, newArrivals, bestsellers] =
     await Promise.all([
       safe(() => serverPromotions.banners("hero"), []),
       safe(serverCatalog.categoryTree, []),
-      safe(serverCatalog.featured, []),
-      safe(serverCatalog.newArrivals, []),
-      safe(serverCatalog.bestsellers, []),
+      safe(serverCatalog.brands, []),
+      safe(() => serverCatalog.featured(20), []),
+      safe(() => serverCatalog.newArrivals(20), []),
+      safe(() => serverCatalog.bestsellers(20), []),
     ]);
+
+  const hasAnyProducts =
+    featured.length > 0 || newArrivals.length > 0 || bestsellers.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-12">
-      {/* Hero — banner carousel + category rail */}
+      {/* 1. Hero — banner carousel + category rail */}
       <HeroBanner banners={banners} categories={categories} />
 
-      {/* Trust features */}
-      <section className="grid grid-cols-1 gap-4 py-7 sm:grid-cols-3">
+      {/* 2. Kategoriyalar — rangli gradient plitalar */}
+      <CategoryTiles categories={categories} />
+
+      {/* 3. Tanlangan mahsulotlar — carousel */}
+      <ProductRow
+        title="Tanlangan mahsulotlar"
+        subtitle="Tahririyat tomonidan saralangan"
+        products={featured}
+        viewAllHref="/catalog?is_featured=true"
+      />
+
+      {/* 4. Promo strip — yetkazib berish + chegirma + to'lov */}
+      <PromoStrip />
+
+      {/* 5. Yangi kelganlar — carousel */}
+      <ProductRow
+        title="Yangi kelganlar"
+        subtitle="Eng so'nggi qo'shilgan mahsulotlar"
+        products={newArrivals}
+        viewAllHref="/catalog?is_new=true"
+      />
+
+      {/* 6. Brendlar strip */}
+      <BrandStrip brands={brands} />
+
+      {/* 7. Eng ko'p sotilganlar — carousel */}
+      <ProductRow
+        title="Eng ko'p sotilganlar"
+        subtitle="Mijozlarimiz orasida sevimli"
+        products={bestsellers}
+        viewAllHref="/catalog?is_bestseller=true"
+      />
+
+      {/* 8. Trust features — sahifa pastida */}
+      <section className="mt-4 grid grid-cols-1 gap-4 py-4 sm:grid-cols-3">
         {FEATURES.map((f) => (
           <div
             key={f.title}
@@ -47,28 +98,8 @@ export default async function HomePage() {
         ))}
       </section>
 
-      {/* Categories */}
-      <CategoryTiles categories={categories} />
-
-      {/* Product rows */}
-      <ProductRow
-        title="Tanlangan mahsulotlar"
-        products={featured}
-        viewAllHref="/catalog?is_featured=true"
-      />
-      <ProductRow
-        title="Yangi kelganlar"
-        products={newArrivals}
-        viewAllHref="/catalog?is_new=true"
-      />
-      <ProductRow
-        title="Eng ko'p sotilganlar"
-        products={bestsellers}
-        viewAllHref="/catalog?is_bestseller=true"
-      />
-
-      {/* Empty-state hint */}
-      {!featured.length && !newArrivals.length && !bestsellers.length && (
+      {/* Empty-state — agar hech qanday mahsulot bo'lmasa */}
+      {!hasAnyProducts && (
         <section className="py-16 text-center">
           <h2 className="font-heading text-2xl font-bold text-neutral-900">
             Hozircha mahsulotlar yo&apos;q

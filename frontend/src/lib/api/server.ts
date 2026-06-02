@@ -61,19 +61,22 @@ export const serverCatalog = {
       revalidate: 120,
     }),
 
-  featured: () =>
+  featured: (limit = 12) =>
     serverFetch<ProductListItem[]>("/catalog/products/featured/", {
       revalidate: 120,
+      query: { limit },
     }),
 
-  newArrivals: () =>
+  newArrivals: (limit = 12) =>
     serverFetch<ProductListItem[]>("/catalog/products/new-arrivals/", {
       revalidate: 120,
+      query: { limit },
     }),
 
-  bestsellers: () =>
+  bestsellers: (limit = 12) =>
     serverFetch<ProductListItem[]>("/catalog/products/bestsellers/", {
       revalidate: 120,
+      query: { limit },
     }),
 
   search: (q: string) =>
