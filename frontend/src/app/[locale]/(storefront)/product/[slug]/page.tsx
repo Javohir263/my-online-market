@@ -6,6 +6,7 @@ import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { ProductRow } from "@/components/product/product-row";
 import { RatingStars } from "@/components/product/rating-stars";
+import { TrustSignals } from "@/components/product/trust-signals";
 import type { ProductDetail } from "@/types/api";
 
 export const revalidate = 60;
@@ -103,41 +104,64 @@ export default async function ProductPage({
         ]}
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <ProductGallery images={product.images} name={product.name} />
+      {/* Main grid — Gallery (sticky) + Purchase + Trust */}
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_1fr]">
+        {/* Gallery — sticky on desktop */}
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <ProductGallery images={product.images} name={product.name} />
+        </div>
 
-        <div>
-          {product.brand && (
-            <span className="text-sm uppercase tracking-wide text-khaki-500">
-              {product.brand.name}
-            </span>
-          )}
-          <h1 className="mt-1 font-heading text-3xl font-bold text-neutral-900">
-            {product.name}
-          </h1>
+        {/* Right column: header → purchase → trust */}
+        <div className="space-y-6">
+          <div>
+            {product.brand && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-khaki-500">
+                {product.brand.name}
+              </span>
+            )}
+            <h1 className="mt-1 font-heading text-2xl font-bold leading-tight text-neutral-900 sm:text-3xl">
+              {product.name}
+            </h1>
 
-          {product.ratings_count > 0 && (
-            <div className="mt-2">
-              <RatingStars
-                value={product.ratings_avg}
-                count={product.ratings_count}
-              />
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              {product.ratings_count > 0 ? (
+                <RatingStars
+                  value={product.ratings_avg}
+                  count={product.ratings_count}
+                  size={14}
+                  variant="compact"
+                />
+              ) : (
+                <span className="text-xs text-khaki-600">
+                  Hali sharhlar yo&apos;q
+                </span>
+              )}
+              {product.is_bestseller && (
+                <span className="rounded-md bg-gold-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gold-700">
+                  Bestseller
+                </span>
+              )}
+              {product.is_new && (
+                <span className="rounded-md bg-accent-700/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-accent-700">
+                  Yangi
+                </span>
+              )}
             </div>
-          )}
 
-          {product.short_description && (
-            <p className="mt-4 text-sm leading-relaxed text-khaki-700">
-              {product.short_description}
-            </p>
-          )}
-
-          <div className="mt-6 border-t border-neutral-200 pt-6">
-            <ProductPurchase product={product} />
+            {product.short_description && (
+              <p className="mt-4 text-sm leading-relaxed text-khaki-800">
+                {product.short_description}
+              </p>
+            )}
           </div>
+
+          <ProductPurchase product={product} />
+
+          <TrustSignals />
         </div>
       </div>
 
-      {/* Description + attributes */}
+      {/* Description + attributes — pastda */}
       <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
         {product.description && (
           <section>
@@ -155,16 +179,14 @@ export default async function ProductPage({
             <h2 className="font-heading text-xl font-bold text-neutral-900">
               Xususiyatlar
             </h2>
-            <dl className="mt-3 divide-y divide-neutral-200 rounded-xl border border-neutral-200">
+            <dl className="mt-3 divide-y divide-neutral-200 overflow-hidden rounded-xl border border-neutral-200 bg-white">
               {product.attributes.map((attr) => (
                 <div
                   key={attr.id}
-                  className="flex justify-between px-4 py-2.5 text-sm"
+                  className="flex justify-between px-4 py-3 text-sm even:bg-neutral-50/50"
                 >
                   <dt className="text-khaki-600">{attr.name}</dt>
-                  <dd className="font-medium text-neutral-800">
-                    {attr.value}
-                  </dd>
+                  <dd className="font-medium text-neutral-900">{attr.value}</dd>
                 </div>
               ))}
             </dl>
@@ -174,7 +196,11 @@ export default async function ProductPage({
 
       {/* Similar */}
       {similar.length > 0 && (
-        <ProductRow title="O'xshash mahsulotlar" products={similar} />
+        <ProductRow
+          title="O'xshash mahsulotlar"
+          subtitle="Sizga yoqishi mumkin"
+          products={similar}
+        />
       )}
     </div>
   );
