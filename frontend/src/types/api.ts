@@ -37,6 +37,16 @@ export interface Brand {
   is_active: boolean;
 }
 
+export interface Banner {
+  id: number;
+  title: string;
+  subtitle: string;
+  image: string;
+  link: string;
+  position: string;
+  order: number;
+}
+
 export interface ProductTag {
   id: number;
   slug: string;

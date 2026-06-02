@@ -1,25 +1,35 @@
-"""
+﻿"""
 `python manage.py seed_demo` — to'liq demo katalog (Uzum.uz uslubida).
 
-10 bo'lim (tree), 18 brend, ~70 mahsulot (o'zbekcha nomlar, variant/
-attribute/review/rasm), banner va kuponlar. Rasmlar mahsulot turiga mos
-ravishda loremflickr/picsum'dan yuklab olinadi (graceful).
+✅ 10 root + 15 sub kategoriya (uz/ru/en tarjima bilan)
+✅ 18 brend
+✅ ~543 ta noyob mahsulot (`_products_data.py` da)
+✅ Banner + kupon + demo akkaunt
+✅ Rasm strategiyasi (priority tartib):
+   1. Unsplash API (`--unsplash-key` yoki `UNSPLASH_ACCESS_KEY` env) — studio darajasi
+   2. loremflickr — Flickr foydalanuvchi fotolari (default)
+   3. picsum — universal chiroyli
+   4. media/products/ pool'i — offline fallback
 
-  python manage.py seed_demo            # qo'shadi (idempotent)
-  python manage.py seed_demo --fresh    # eski katalogni tozalab qayta
-  python manage.py seed_demo --no-images
+Foydalanish:
+  python manage.py seed_demo --fresh
+  python manage.py seed_demo --fresh --unsplash-key=YOUR_KEY  # eng yaxshi sifat
+  python manage.py seed_demo --no-images                       # rasmsiz, tez
+  python manage.py seed_demo --no-fetch                        # offline (pool)
 """
 
 from __future__ import annotations
 
+import os
 import random
 from decimal import Decimal
+from pathlib import Path
 
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.catalog.models import (
@@ -39,40 +49,41 @@ User = get_user_model()
 random.seed(42)
 
 # =============================================================================
-# Kategoriyalar (Uzum.uz uslubi) — (nom, lucide-icon, [(sub, icon, img_kw)])
+# Kategoriyalar — (slug bo'lib yagona uz nomidan slugify orqali olinadi)
+# (uz, ru, en, icon, [(sub_uz, sub_ru, sub_en, icon, img_kw)])
 # =============================================================================
 CATEGORIES = [
-    ("Elektronika", "smartphone", [
-        ("Smartfonlar", "smartphone", "smartphone"),
-        ("Noutbuklar", "laptop", "laptop"),
-        ("Audio", "headphones", "headphones"),
-        ("Televizorlar", "tv", "television"),
+    ("Elektronika", "Электроника", "Electronics", "smartphone", [
+        ("Smartfonlar", "Смартфоны", "Smartphones", "smartphone", "smartphone"),
+        ("Noutbuklar", "Ноутбуки", "Laptops", "laptop", "laptop"),
+        ("Audio", "Аудио", "Audio", "headphones", "headphones"),
+        ("Televizorlar", "Телевизоры", "TVs", "tv", "television"),
     ]),
-    ("Kiyim-kechak", "shirt", [
-        ("Erkaklar", "shirt", "menswear"),
-        ("Ayollar", "venus", "dress"),
-        ("Bolalar kiyimi", "baby", "kids-clothing"),
+    ("Kiyim-kechak", "Одежда", "Clothing", "shirt", [
+        ("Erkaklar", "Мужская", "Men", "shirt", "menswear"),
+        ("Ayollar", "Женская", "Women", "venus", "dress"),
+        ("Bolalar kiyimi", "Детская одежда", "Kids' clothing", "baby", "kids-clothing"),
     ]),
-    ("Oziq-ovqat", "apple", [
-        ("Mevalar", "apple", "fruit"),
-        ("Ichimliklar", "cup-soda", "drink"),
-        ("Shirinliklar", "cookie", "sweets"),
+    ("Oziq-ovqat", "Продукты", "Groceries", "apple", [
+        ("Mevalar", "Фрукты", "Fruits", "apple", "fruit"),
+        ("Ichimliklar", "Напитки", "Drinks", "cup-soda", "drink"),
+        ("Shirinliklar", "Сладости", "Sweets", "cookie", "sweets"),
     ]),
-    ("Go'zallik", "sparkles", [
-        ("Parfyumeriya", "spray-can", "perfume"),
-        ("Kosmetika", "palette", "cosmetics"),
+    ("Go'zallik", "Красота", "Beauty", "sparkles", [
+        ("Parfyumeriya", "Парфюмерия", "Perfumery", "spray-can", "perfume"),
+        ("Kosmetika", "Косметика", "Cosmetics", "palette", "cosmetics"),
     ]),
-    ("Uy va bog'", "house", [
-        ("Oshxona", "cooking-pot", "kitchen"),
-        ("Tekstil", "bed", "home-textile"),
+    ("Uy va bog'", "Дом и сад", "Home & Garden", "house", [
+        ("Oshxona", "Кухня", "Kitchen", "cooking-pot", "kitchen"),
+        ("Tekstil", "Текстиль", "Textile", "bed", "home-textile"),
     ]),
-    ("Bolalar", "baby", [
-        ("O'yinchoqlar", "blocks", "toys"),
+    ("Bolalar", "Детям", "Kids", "baby", [
+        ("O'yinchoqlar", "Игрушки", "Toys", "blocks", "toys"),
     ]),
-    ("Sport", "dumbbell", []),
-    ("Kitoblar", "book-open", []),
-    ("Avtotovarlar", "car", []),
-    ("Hayvonlar uchun", "paw-print", []),
+    ("Sport", "Спорт", "Sports", "dumbbell", []),
+    ("Kitoblar", "Книги", "Books", "book-open", []),
+    ("Avtotovarlar", "Автотовары", "Auto", "car", []),
+    ("Hayvonlar uchun", "Для животных", "Pet supplies", "paw-print", []),
 ]
 
 BRANDS = [
@@ -81,84 +92,10 @@ BRANDS = [
     "Nestle", "Coca-Cola", "Lego", "Loreal", "Artel", "Mevasevar",
 ]
 
-# (name, category_slug, brand, price_uzs, sale|None, colors, sizes, attrs, img_kw)
-PRODUCTS = [
-    # --- Smartfonlar ---
-    ("iPhone 15 Pro 256GB", "smartfonlar", "Apple", 15_900_000, 14_500_000, ["Titan", "Qora"], [], [("Ekran", "6.1\" OLED"), ("Xotira", "256GB")], "iphone"),
-    ("Samsung Galaxy S24 Ultra", "smartfonlar", "Samsung", 16_500_000, 15_200_000, ["Qora", "Kulrang"], [], [("Ekran", "6.8\" AMOLED"), ("S-Pen", "Bor")], "samsung-phone"),
-    ("Xiaomi Redmi Note 13", "smartfonlar", "Xiaomi", 3_200_000, 2_800_000, ["Qora", "Oq"], [], [("Batareya", "5000mAh")], "xiaomi-phone"),
-    ("iPhone 14 128GB", "smartfonlar", "Apple", 11_200_000, None, ["Qora", "Ko'k"], [], [("Xotira", "128GB")], "iphone-14"),
-    ("Samsung Galaxy A55", "smartfonlar", "Samsung", 5_400_000, 4_900_000, ["Ko'k"], [], [("Xotira", "256GB")], "phone"),
-    # --- Noutbuklar ---
-    ("MacBook Air M3 13\"", "noutbuklar", "Apple", 18_500_000, None, ["Kulrang", "Oltin"], [], [("Protsessor", "Apple M3"), ("RAM", "16GB")], "macbook"),
-    ("Dell XPS 13", "noutbuklar", "Dell", 14_200_000, 12_900_000, ["Kumush"], [], [("Protsessor", "Intel i7")], "laptop-dell"),
-    ("HP Pavilion 15", "noutbuklar", "HP", 7_800_000, None, ["Kumush"], [], [("RAM", "8GB")], "laptop-hp"),
-    # --- Audio ---
-    ("Sony WH-1000XM5", "audio", "Sony", 4_200_000, 3_800_000, ["Qora"], [], [("ANC", "Bor"), ("Batareya", "30 soat")], "headphones"),
-    ("AirPods Pro 2", "audio", "Apple", 3_100_000, None, ["Oq"], [], [("ANC", "Bor")], "earbuds"),
-    ("JBL Flip 6", "audio", "Sony", 1_400_000, 1_100_000, ["Qora", "Ko'k"], [], [("Suvga chidamli", "IP67")], "speaker"),
-    # --- Televizorlar ---
-    ("Samsung 55\" QLED 4K", "televizorlar", "Samsung", 9_500_000, 8_700_000, [], [], [("Diagonal", "55\""), ("4K", "Bor")], "tv"),
-    ("LG OLED 65\"", "televizorlar", "LG", 14_900_000, None, [], [], [("Diagonal", "65\""), ("OLED", "Bor")], "led-tv"),
-    ("Artel 43\" Smart TV", "televizorlar", "Artel", 3_400_000, 2_990_000, [], [], [("Diagonal", "43\"")], "smart-tv"),
-    # --- Erkaklar kiyimi ---
-    ("Nike Air Max 270", "erkaklar", "Nike", 1_800_000, 1_500_000, ["Qora", "Oq"], ["40", "41", "42", "43", "44"], [("Tip", "Krossovka")], "sneakers"),
-    ("Adidas Ultraboost 22", "erkaklar", "Adidas", 2_100_000, None, ["Qora", "Kulrang"], ["41", "42", "43"], [("Tip", "Yugurish")], "running-shoes"),
-    ("Zara Klassik ko'ylak", "erkaklar", "Zara", 450_000, 320_000, ["Oq", "Ko'k"], ["S", "M", "L", "XL"], [("Material", "Paxta")], "shirt"),
-    ("Erkaklar kurtka", "erkaklar", "Zara", 890_000, None, ["Qora", "Jigarrang"], ["M", "L", "XL"], [("Mavsum", "Qish")], "jacket"),
-    # --- Ayollar kiyimi ---
-    ("Zara Yozgi libos", "ayollar", "Zara", 580_000, 420_000, ["Qizil", "Yashil"], ["S", "M", "L"], [("Material", "Viskoza")], "dress"),
-    ("Nike Sport futbolka", "ayollar", "Nike", 380_000, None, ["Pushti", "Qora"], ["XS", "S", "M"], [("Material", "Dri-FIT")], "tshirt"),
-    ("Ayollar sumkasi", "ayollar", "Zara", 720_000, 599_000, ["Qora", "Bej"], [], [("Material", "Eko-charm")], "handbag"),
-    # --- Bolalar kiyimi ---
-    ("Bolalar krossovkasi", "bolalar-kiyimi", "Adidas", 520_000, 450_000, ["Ko'k", "Pushti"], ["28", "30", "32", "34"], [("Yosh", "3-7")], "kids-shoes"),
-    ("Bolalar futbolkasi", "bolalar-kiyimi", "Nike", 180_000, None, ["Sariq", "Yashil"], ["2-3", "4-5", "6-7"], [("Material", "Paxta")], "kids-shirt"),
-    # --- Mevalar ---
-    ("Olma (Simirenko) 1kg", "mevalar", "Mevasevar", 18_000, 15_000, [], [], [("Kelib chiqishi", "O'zbekiston"), ("Vazn", "1kg")], "apple-fruit"),
-    ("Banan 1kg", "mevalar", "Mevasevar", 22_000, None, [], [], [("Kelib chiqishi", "Ekvador")], "banana"),
-    ("Apelsin 1kg", "mevalar", "Mevasevar", 25_000, 21_000, [], [], [("Kelib chiqishi", "Misr")], "orange-fruit"),
-    ("Uzum (Husayni) 1kg", "mevalar", "Mevasevar", 32_000, None, [], [], [("Kelib chiqishi", "Samarqand")], "grapes"),
-    ("Anor 1kg", "mevalar", "Mevasevar", 28_000, 24_000, [], [], [("Kelib chiqishi", "O'zbekiston")], "pomegranate"),
-    # --- Ichimliklar ---
-    ("Coca-Cola 1.5L", "ichimliklar", "Coca-Cola", 14_000, None, [], [], [("Hajm", "1.5L")], "cola"),
-    ("Tabiiy suv 5L", "ichimliklar", "Nestle", 9_000, 7_500, [], [], [("Hajm", "5L")], "water-bottle"),
-    ("Apelsin sharbati 1L", "ichimliklar", "Nestle", 18_000, None, [], [], [("Hajm", "1L")], "juice"),
-    # --- Shirinliklar ---
-    ("Shokolad assorti 400g", "shirinliklar", "Nestle", 65_000, 55_000, [], [], [("Vazn", "400g")], "chocolate"),
-    ("Pechenye 300g", "shirinliklar", "Nestle", 22_000, None, [], [], [("Vazn", "300g")], "cookies"),
-    # --- Parfyumeriya ---
-    ("Atir Premium 50ml", "parfyumeriya", "Loreal", 420_000, None, [], [], [("Hajm", "50ml"), ("Tip", "EDP")], "perfume"),
-    ("Erkaklar atiri 100ml", "parfyumeriya", "Loreal", 540_000, 460_000, [], [], [("Hajm", "100ml")], "cologne"),
-    # --- Kosmetika ---
-    ("Yuz kremi", "kosmetika", "Loreal", 145_000, 120_000, [], [], [("Hajm", "50ml")], "cream-cosmetic"),
-    ("Lab bo'yog'i to'plami", "kosmetika", "Loreal", 230_000, None, ["Qizil", "Pushti"], [], [("Soni", "3 dona")], "lipstick"),
-    # --- Oshxona ---
-    ("Bosch Changyutgich", "oshxona", "Bosch", 3_400_000, 2_900_000, ["Qizil"], [], [("Quvvat", "750W")], "vacuum"),
-    ("Philips Dazmol", "oshxona", "Philips", 850_000, None, ["Ko'k"], [], [("Quvvat", "2400W")], "iron-appliance"),
-    ("Choynak elektr", "oshxona", "Artel", 320_000, 270_000, ["Oq", "Qora"], [], [("Hajm", "1.7L")], "kettle"),
-    ("Tovoq to'plami 12 dona", "oshxona", "Artel", 480_000, None, [], [], [("Material", "Chinni")], "dishes"),
-    # --- Tekstil ---
-    ("Ko'rpa-to'shak to'plami", "tekstil", "Artel", 650_000, 540_000, ["Oq", "Bej"], [], [("O'lcham", "2 kishilik")], "bedding"),
-    ("Sochiq to'plami", "tekstil", "Artel", 180_000, None, ["Ko'k", "Yashil"], [], [("Soni", "4 dona")], "towels"),
-    # --- O'yinchoqlar ---
-    ("Lego Classic 500", "oyinchoqlar", "Lego", 420_000, 360_000, [], [], [("Bo'laklar", "500")], "lego"),
-    ("Masofadan boshqariladigan mashina", "oyinchoqlar", "Lego", 280_000, None, ["Qizil", "Ko'k"], [], [("Yosh", "6+")], "toy-car"),
-    ("Yumshoq o'yinchoq ayiq", "oyinchoqlar", "Lego", 150_000, 120_000, ["Jigarrang"], [], [("Balandlik", "40sm")], "teddy-bear"),
-    # --- Sport ---
-    ("Dumbbell to'plami 20kg", "sport", "Nike", 1_200_000, None, [], [], [("Og'irlik", "20kg")], "dumbbell"),
-    ("Yoga gilam Pro", "sport", "Adidas", 350_000, 280_000, ["Binafsha", "Yashil"], [], [("Qalinlik", "6mm")], "yoga-mat"),
-    ("Velosiped Mountain", "sport", "Artel", 3_200_000, 2_800_000, ["Qora", "Qizil"], [], [("G'ildirak", "26\"")], "bicycle"),
-    # --- Kitoblar ---
-    ("Atomic Habits (uz)", "kitoblar", "Mevasevar", 85_000, None, [], [], [("Muallif", "James Clear")], "book"),
-    ("Boy ota, kambag'al ota", "kitoblar", "Mevasevar", 72_000, 60_000, [], [], [("Muallif", "R. Kiyosaki")], "books"),
-    ("O'tkan kunlar — A.Qodiriy", "kitoblar", "Mevasevar", 65_000, None, [], [], [("Til", "O'zbek")], "old-book"),
-    # --- Avtotovarlar ---
-    ("Motor moyi 4L", "avtotovarlar", "Bosch", 280_000, 240_000, [], [], [("Hajm", "4L")], "motor-oil"),
-    ("Avtomobil shinasi R16", "avtotovarlar", "Bosch", 750_000, None, [], [], [("O'lcham", "R16")], "car-tire"),
-    # --- Hayvonlar uchun ---
-    ("It uchun ozuqa 3kg", "hayvonlar-uchun", "Nestle", 145_000, 120_000, [], [], [("Vazn", "3kg")], "dog-food"),
-    ("Mushuk o'yinchog'i", "hayvonlar-uchun", "Nestle", 45_000, None, [], [], [("Tur", "Sichqon")], "cat-toy"),
-]
+# =============================================================================
+# Mahsulot shablonlari — alohida faylda (~500 ta noyob mahsulot, uz/ru/en).
+# =============================================================================
+from ._products_data import PRODUCT_SEEDS  # noqa: E402
 
 REVIEW_TEXTS = [
     ("Ajoyib mahsulot!", "Sifati zo'r, tez yetkazib berishdi. Tavsiya qilaman."),
@@ -169,20 +106,51 @@ REVIEW_TEXTS = [
     ("Tavsiya qilaman", "Oilam uchun oldim, hammaga yoqdi."),
 ]
 
+DESC_TEMPLATES = {
+    "uz": (
+        "{name} — yuqori sifatli, original mahsulot. Rasmiy kafolat, tez "
+        "yetkazib berish va ishonchli xizmat. My Online Market'da xarid qiling."
+    ),
+    "ru": (
+        "{name} — высококачественный оригинальный товар. Официальная "
+        "гарантия, быстрая доставка и надежный сервис. Покупайте на My Online Market."
+    ),
+    "en": (
+        "{name} — premium quality original product. Official warranty, fast "
+        "delivery and reliable service. Shop on My Online Market."
+    ),
+}
+SHORT_DESC = {
+    "uz": "Original, kafolat bilan. Tez yetkazib berish.",
+    "ru": "Оригинал, с гарантией. Быстрая доставка.",
+    "en": "Original, with warranty. Fast delivery.",
+}
+
 
 class Command(BaseCommand):
-    help = "Seed full demo catalog (Uzum-style) with images."
+    help = "Seed full demo catalog (uz/ru/en) with ~50 products per root category."
 
     def add_arguments(self, parser):
-        parser.add_argument("--no-images", action="store_true")
-        parser.add_argument(
-            "--fresh",
-            action="store_true",
-            help="Eski katalogni (Product/Category/Brand) tozalab qayta seed.",
-        )
+        parser.add_argument("--no-images", action="store_true",
+                            help="Mahsulotlarga rasm biriktirmaslik (eng tez).")
+        parser.add_argument("--no-fetch", action="store_true",
+                            help="Internet'dan rasm yuklab olmasdan, mavjud "
+                                 "media/products/ pool'idan tasodifiy biriktirish (tez, offline).")
+        parser.add_argument("--fresh", action="store_true",
+                            help="Eski katalogni tozalab qayta seed.")
+        parser.add_argument("--unsplash-key",
+                            default=os.environ.get("UNSPLASH_ACCESS_KEY"),
+                            help="Unsplash Access Key. Berilsa, professional "
+                                 "darajadagi real foto yuklab olamiz (loremflickr "
+                                 "o'rniga). Demo tarif: 50 req/soat, lekin per-keyword "
+                                 "kesh tufayli ~50-80 ta unique keyword yetadi.")
 
     def handle(self, *args, **options):
-        self.skip_images = options["no_images"]
+        self.no_images = options["no_images"]
+        self.no_fetch = options["no_fetch"]
+        self.unsplash_key = options.get("unsplash_key")
+        self.unsplash_cache: dict[str, list[str]] = {}
+        self.unsplash_disabled = False  # rate-limit'da True bo'ladi
         self.session = requests.Session()
 
         if options["fresh"]:
@@ -192,7 +160,6 @@ class Command(BaseCommand):
             ProductVariant.objects.all().delete()
             ProductAttribute.objects.all().delete()
             Product.objects.all().delete()
-            # Category.parent PROTECT — leaf'dan boshlab o'chiramiz
             for _ in range(6):
                 if not Category.objects.exists():
                     break
@@ -200,12 +167,22 @@ class Command(BaseCommand):
 
         vendor = Vendor.objects.get_default()
 
-        self.stdout.write("Kategoriyalar...")
+        self.stdout.write("Kategoriyalar (uz/ru/en)...")
         cat_map = self._seed_categories()
-        self.stdout.write("Brendlar...")
+        self.stdout.write(f"Brendlar ({len(BRANDS)})...")
         brand_map = self._seed_brands()
-        self.stdout.write(f"Mahsulotlar ({len(PRODUCTS)} ta)...")
+
+        # Mavjud media/products/ ichidagi rasmlardan pool tuzamiz
+        self.image_pool = self._scan_image_pool()
+        if self.image_pool:
+            self.stdout.write(
+                f"Rasm pool: {len(self.image_pool)} ta fayl topildi "
+                "(internet'siz tez seed)."
+            )
+
+        self.stdout.write("Mahsulotlar (~110 noyob, internet'dan rasm yuklash 3-5 daq)...")
         self._seed_products(vendor, cat_map, brand_map)
+
         self.stdout.write("Sharhlar...")
         self._seed_reviews()
         self.stdout.write("Banner + kuponlar...")
@@ -213,9 +190,10 @@ class Command(BaseCommand):
         self._seed_coupons()
         self._seed_demo_user()
 
+        self.stdout.write("products_count (denorm) qayta hisoblanmoqda...")
         for cat in Category.objects.all():
             cat.products_count = Product.objects.filter(
-                category=cat, is_active=True
+                category_id__in=cat.get_descendant_ids(), is_active=True
             ).count()
             cat.save(update_fields=["products_count"])
 
@@ -224,25 +202,33 @@ class Command(BaseCommand):
                 f"Tayyor: {Product.objects.count()} mahsulot, "
                 f"{Category.objects.count()} kategoriya, "
                 f"{Brand.objects.count()} brend, "
-                f"{Review.objects.count()} sharh."
+                f"{Review.objects.count()} sharh, "
+                f"{ProductImage.objects.count()} rasm."
             )
         )
 
-    # ------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def _seed_categories(self) -> dict[str, Category]:
         cat_map: dict[str, Category] = {}
-        for order, (name, icon, subs) in enumerate(CATEGORIES):
-            slug = slugify(name)
+        for order, (uz, ru, en, icon, subs) in enumerate(CATEGORIES):
+            slug = slugify(uz)
             parent, _ = Category.objects.update_or_create(
                 slug=slug,
-                defaults={"name": name, "icon": icon, "order": order, "is_active": True},
+                defaults={
+                    "name": uz, "name_uz": uz, "name_ru": ru, "name_en": en,
+                    "icon": icon, "order": order, "is_active": True,
+                },
             )
             cat_map[slug] = parent
-            for sname, sicon, _kw in subs:
-                sslug = slugify(sname)
+            for sub_order, (suz, sru, sen, sicon, _kw) in enumerate(subs):
+                sslug = slugify(suz)
                 sub, _ = Category.objects.update_or_create(
                     slug=sslug,
-                    defaults={"name": sname, "icon": sicon, "parent": parent, "is_active": True},
+                    defaults={
+                        "name": suz, "name_uz": suz, "name_ru": sru, "name_en": sen,
+                        "icon": sicon, "parent": parent, "order": sub_order,
+                        "is_active": True,
+                    },
                 )
                 cat_map[sslug] = sub
         return cat_map
@@ -251,95 +237,230 @@ class Command(BaseCommand):
         m: dict[str, Brand] = {}
         for name in BRANDS:
             b, _ = Brand.objects.update_or_create(
-                slug=slugify(name), defaults={"name": name, "is_active": True}
+                slug=slugify(name),
+                defaults={
+                    "name": name, "name_uz": name, "name_ru": name, "name_en": name,
+                    "is_active": True,
+                },
             )
             m[name] = b
         return m
 
+    def _scan_image_pool(self) -> list[Path]:
+        """Return list of existing media/products/*.jpg files."""
+        media_root = Path(settings.MEDIA_ROOT)
+        products_dir = media_root / "products"
+        if not products_dir.exists():
+            return []
+        return sorted(p for p in products_dir.iterdir()
+                      if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"})
+
+    # ----------------------------------------------------------------------
     def _seed_products(self, vendor, cat_map, brand_map) -> None:
-        for idx, (
-            name, cat_slug, brand_name, price, sale, colors, sizes, attrs, img_kw,
-        ) in enumerate(PRODUCTS):
-            category = cat_map.get(cat_slug)
+        """Har PRODUCT_SEEDS yozuvi → AYNAN bitta noyob mahsulot. Takror yo'q."""
+        global_idx = 0
+        for leaf_slug, templates in PRODUCT_SEEDS.items():
+            category = cat_map.get(leaf_slug)
             if category is None:
                 continue
-            slug = slugify(name) or f"product-{idx}"
-            product, created = Product.objects.update_or_create(
-                slug=slug,
-                defaults={
-                    "vendor": vendor,
-                    "category": category,
-                    "brand": brand_map.get(brand_name),
-                    "name": name,
-                    "sku": f"SKU-{idx + 1:05d}",
-                    "short_description": f"{name} — original, kafolat bilan. Tez yetkazib berish.",
-                    "description": (
-                        f"{name} — yuqori sifatli original mahsulot. Rasmiy "
-                        f"kafolat, tez yetkazib berish va ishonchli xizmat. "
-                        f"My Online Market'da xarid qiling."
-                    ),
-                    "base_price": Decimal(price),
-                    "sale_price": Decimal(sale) if sale else None,
-                    "stock_quantity": random.randint(8, 120),
-                    "is_active": True,
-                    "is_featured": idx % 3 == 0,
-                    "is_new": idx % 4 == 0,
-                    "is_bestseller": idx % 5 == 0,
-                },
-            )
-            product.is_in_stock = product.stock_quantity > 0
-            product.save(update_fields=["is_in_stock"])
+            for (name_uz, name_ru, name_en, base_price, img_kw) in templates:
+                global_idx += 1
+                slug = slugify(name_uz) or f"product-{global_idx}"
 
-            if not product.attributes.exists():
-                for o, (an, av) in enumerate(attrs):
-                    ProductAttribute.objects.create(product=product, name=an, value=av, order=o)
+                # Har 3-mahsulotda chegirma — varying realistic
+                sale = None
+                if global_idx % 3 == 0:
+                    sale = int(base_price * random.uniform(0.75, 0.95))
 
-            if not product.variants.exists():
-                self._make_variants(product, colors, sizes)
+                brand = random.choice(list(brand_map.values()))
 
-            if not product.images.exists():
-                self._attach_images(product, slug, img_kw, count=2)
+                product, _ = Product.objects.update_or_create(
+                    slug=slug,
+                    defaults={
+                        "vendor": vendor,
+                        "category": category,
+                        "brand": brand,
+                        "name": name_uz,
+                        "name_uz": name_uz,
+                        "name_ru": name_ru,
+                        "name_en": name_en,
+                        "short_description": SHORT_DESC["uz"],
+                        "short_description_uz": SHORT_DESC["uz"],
+                        "short_description_ru": SHORT_DESC["ru"],
+                        "short_description_en": SHORT_DESC["en"],
+                        "description": DESC_TEMPLATES["uz"].format(name=name_uz),
+                        "description_uz": DESC_TEMPLATES["uz"].format(name=name_uz),
+                        "description_ru": DESC_TEMPLATES["ru"].format(name=name_ru),
+                        "description_en": DESC_TEMPLATES["en"].format(name=name_en),
+                        "sku": f"SKU-{global_idx:05d}",
+                        "base_price": Decimal(base_price),
+                        "sale_price": Decimal(sale) if sale else None,
+                        "stock_quantity": random.randint(8, 120),
+                        "is_active": True,
+                        "is_featured": global_idx % 5 == 0,
+                        "is_new": global_idx % 4 == 0,
+                        "is_bestseller": global_idx % 6 == 0,
+                    },
+                )
+                product.is_in_stock = product.stock_quantity > 0
+                product.save(update_fields=["is_in_stock"])
 
-    def _make_variants(self, product, colors, sizes) -> None:
-        combos: list[tuple[str, str]] = []
-        if colors and sizes:
-            combos = [(c, s) for c in colors for s in sizes]
-        elif colors:
-            combos = [(c, "") for c in colors]
-        elif sizes:
-            combos = [("", s) for s in sizes]
-        for i, (c, s) in enumerate(combos[:15]):
-            ProductVariant.objects.create(
-                product=product, sku=f"{product.sku}-V{i + 1}",
-                color=c, size=s, additional_price=Decimal("0"),
-                stock_quantity=random.randint(0, 25), is_active=True,
-            )
+                if not product.attributes.exists():
+                    ProductAttribute.objects.create(
+                        product=product, name="Brend", value=brand.name, order=0,
+                        name_uz="Brend", name_ru="Бренд", name_en="Brand",
+                        value_uz=brand.name, value_ru=brand.name, value_en=brand.name,
+                    )
 
-    def _attach_images(self, product, slug, img_kw, count=2) -> None:
-        if self.skip_images:
+                if not product.images.exists():
+                    self._attach_images(product, slug, img_kw)
+                    if global_idx % 10 == 0:
+                        self.stdout.write(f"  ...{global_idx} mahsulot tayyor")
+
+    def _attach_images(self, product, slug: str, img_kw: str, count: int = 1) -> None:
+        """Mahsulotga rasm biriktirish. Strategiya (tartib bo'yicha):
+
+        1) `--no-images`:  hech narsa.
+        2) `--no-fetch`:   media/products/ pool'idan (offline, tasodifiy).
+        3) Unsplash:       agar `--unsplash-key` berilgan bo'lsa, birinchi navbatda
+                           Unsplash'dan kalit so'zga mos professional foto.
+        4) loremflickr:    fallback (Flickr foydalanuvchi fotolari).
+        5) picsum:         oxirgi chora (chiroyli, lekin kalit so'zga mos emas).
+        6) Pool:           hech qaysi internet manbai ishlamasa.
+        """
+        if self.no_images:
             return
+
+        if self.no_fetch:
+            self._attach_from_pool(product, slug, count)
+            return
+
+        attached = 0
         for i in range(count):
-            # loremflickr — mavzuga mos rasm; fallback picsum
-            urls = [
+            # Tartib: Unsplash → loremflickr → picsum
+            candidates: list[str] = []
+            if self.unsplash_key and not self.unsplash_disabled:
+                u = self._get_unsplash_url(img_kw, slug, i)
+                if u:
+                    candidates.append(u)
+            candidates.extend([
                 f"https://loremflickr.com/700/700/{img_kw}?lock={abs(hash(slug)) % 1000 + i}",
                 f"https://picsum.photos/seed/{slug}-{i}/700/700",
-            ]
-            for url in urls:
+            ])
+
+            for url in candidates:
                 try:
-                    resp = self.session.get(url, timeout=15)
+                    resp = self.session.get(url, timeout=20, allow_redirects=True)
                     if resp.status_code == 200 and len(resp.content) > 1000:
                         img = ProductImage(
-                            product=product, alt_text=product.name,
-                            order=i, is_primary=(i == 0),
+                            product=product,
+                            alt_text=product.name,
+                            alt_text_uz=product.name_uz,
+                            alt_text_ru=product.name_ru,
+                            alt_text_en=product.name_en,
+                            order=i,
+                            is_primary=(i == 0),
                         )
-                        img.image.save(f"{slug}-{i}.jpg", ContentFile(resp.content), save=True)
+                        img.image.save(
+                            f"{slug}-{i}.jpg",
+                            ContentFile(resp.content),
+                            save=True,
+                        )
+                        attached += 1
                         break
                 except requests.RequestException:
                     continue
 
+        # Pool fallback
+        if attached == 0 and self.image_pool:
+            self._attach_from_pool(product, slug, count)
+
+    def _get_unsplash_url(self, keyword: str, slug: str, index: int) -> str | None:
+        """Unsplash'dan kalit so'zga mos foto URL'ini olish.
+
+        Per-keyword kesh: har noyob kalit so'z uchun bir martagina API chaqiriladi
+        (5 ta foto olinadi), keyin shu kalit so'zli barcha mahsulotlar shu pool'dan
+        deterministik (slug+index hash bo'yicha) tanlaydi. Bu 543 mahsulotni
+        50/soat limitiga sig'dirish uchun kerak.
+        """
+        if self.unsplash_disabled:
+            return None
+
+        if keyword not in self.unsplash_cache:
+            try:
+                r = self.session.get(
+                    "https://api.unsplash.com/search/photos",
+                    params={
+                        "query": keyword,
+                        "per_page": 5,
+                        "orientation": "squarish",
+                        "content_filter": "high",
+                    },
+                    headers={"Authorization": f"Client-ID {self.unsplash_key}"},
+                    timeout=15,
+                )
+                if r.status_code == 200:
+                    results = r.json().get("results", [])
+                    urls = [p["urls"]["regular"] for p in results if p.get("urls", {}).get("regular")]
+                    self.unsplash_cache[keyword] = urls
+                    if not urls:
+                        self.stdout.write(f"    [unsplash] '{keyword}' uchun foto topilmadi")
+                elif r.status_code == 403:
+                    self.stdout.write(self.style.WARNING(
+                        "    [unsplash] RATE LIMIT (403) — loremflickr/picsum'ga o'tamiz"
+                    ))
+                    self.unsplash_disabled = True
+                    self.unsplash_cache[keyword] = []
+                elif r.status_code == 401:
+                    self.stdout.write(self.style.ERROR(
+                        "    [unsplash] Access Key noto'g'ri (401) — loremflickr'ga o'tamiz"
+                    ))
+                    self.unsplash_disabled = True
+                    self.unsplash_cache[keyword] = []
+                else:
+                    self.stdout.write(f"    [unsplash] xato {r.status_code}: {keyword}")
+                    self.unsplash_cache[keyword] = []
+            except requests.RequestException as exc:
+                self.stdout.write(f"    [unsplash] tarmoq xatosi: {exc}")
+                self.unsplash_cache[keyword] = []
+
+        photos = self.unsplash_cache.get(keyword) or []
+        if not photos:
+            return None
+        # Deterministik tanlash (slug + index)
+        idx = (abs(hash(slug)) + index) % len(photos)
+        return photos[idx]
+
+    def _attach_from_pool(self, product, slug: str, count: int) -> None:
+        """Mavjud media/products/ pool'idan deterministik tanlash (offline)."""
+        if not self.image_pool:
+            return
+        h = abs(hash(slug))
+        for i in range(count):
+            src = self.image_pool[(h + i) % len(self.image_pool)]
+            try:
+                with src.open("rb") as f:
+                    content = f.read()
+                img = ProductImage(
+                    product=product,
+                    alt_text=product.name,
+                    alt_text_uz=product.name_uz,
+                    alt_text_ru=product.name_ru,
+                    alt_text_en=product.name_en,
+                    order=i,
+                    is_primary=(i == 0),
+                )
+                img.image.save(
+                    f"{slug}-{i}-pool.jpg",
+                    ContentFile(content),
+                    save=True,
+                )
+            except OSError:
+                continue
+
     def _seed_reviews(self) -> None:
         reviewers = []
-        for i in range(6):
+        for i in range(8):
             u, _ = User.objects.get_or_create(
                 email=f"mijoz{i}@demo.uz",
                 defaults={"full_name": f"Mijoz {i + 1}", "is_email_verified": True},
@@ -348,7 +469,7 @@ class Command(BaseCommand):
         for product in Product.objects.all():
             if product.reviews.exists():
                 continue
-            for u in random.sample(reviewers, random.randint(0, 5)):
+            for u in random.sample(reviewers, random.randint(0, 4)):
                 title, content = random.choice(REVIEW_TEXTS)
                 Review.objects.create(
                     product=product, user=u, rating=random.randint(3, 5),
@@ -359,44 +480,59 @@ class Command(BaseCommand):
             recompute_product_rating(product.id)
 
     def _seed_banners(self) -> None:
-        for o, (title, subtitle) in enumerate([
-            ("Premium kolleksiya", "Eng yaxshi mahsulotlar bir joyda"),
-            ("Chegirmalar mavsumi", "50% gacha tejang"),
-        ]):
+        items = [
+            ("Premium kolleksiya", "Премиум коллекция", "Premium collection",
+             "Eng yaxshi mahsulotlar bir joyda",
+             "Лучшие товары в одном месте",
+             "Top products in one place"),
+            ("Chegirmalar mavsumi", "Сезон скидок", "Sale season",
+             "50% gacha tejang", "Экономия до 50%", "Save up to 50%"),
+        ]
+        for o, (t_uz, t_ru, t_en, s_uz, s_ru, s_en) in enumerate(items):
             b, created = Banner.objects.get_or_create(
-                title=title,
-                defaults={"subtitle": subtitle, "position": "hero", "order": o, "is_active": True},
+                title=t_uz,
+                defaults={
+                    "subtitle": s_uz,
+                    "position": "hero", "order": o, "is_active": True,
+                },
             )
-            if created and not self.skip_images:
+            # Always sync translations (idempotent)
+            b.title_uz = t_uz; b.title_ru = t_ru; b.title_en = t_en
+            b.subtitle_uz = s_uz; b.subtitle_ru = s_ru; b.subtitle_en = s_en
+            b.save()
+            if created and not self.no_images and not self.no_fetch:
                 try:
-                    r = self.session.get(f"https://picsum.photos/seed/banner-{o}/1600/600", timeout=15)
+                    r = self.session.get(
+                        f"https://picsum.photos/seed/banner-{o}/1600/600", timeout=15,
+                    )
                     if r.status_code == 200:
-                        b.image.save(f"banner-{o}.jpg", ContentFile(r.content), save=True)
+                        b.image.save(f"banner-{o}.jpg",
+                                     ContentFile(r.content), save=True)
                 except requests.RequestException:
                     pass
 
-    def _seed_demo_user(self) -> None:
-        """Frontend'da sinab ko'rish uchun tayyor customer akkaunt."""
-        u, _ = User.objects.get_or_create(
-            email="demo@demo.uz",
-            defaults={"full_name": "Demo Mijoz", "is_email_verified": True},
-        )
-        u.set_password("Demo1234!")
-        u.is_email_verified = True
-        u.save()
-        self.stdout.write("  demo login: demo@demo.uz / Demo1234!")
-
     def _seed_coupons(self) -> None:
-        Coupon.objects.update_or_create(
-            code="WELCOME10",
-            defaults={"type": Coupon.Type.PERCENTAGE, "value": Decimal("10"),
-                      "min_order_amount": Decimal("100000"), "max_discount": Decimal("500000"),
-                      "is_active": True, "per_user_limit": 1},
+        for code, value in [("WELCOME10", 10), ("SUMMER20", 20)]:
+            Coupon.objects.get_or_create(
+                code=code,
+                defaults={
+                    "type": Coupon.Type.PERCENTAGE,
+                    "value": Decimal(value),
+                    "is_active": True,
+                    "usage_limit": 1000,
+                    "used_count": 0,
+                },
+            )
+
+    def _seed_demo_user(self) -> None:
+        u, created = User.objects.get_or_create(
+            email="demo@demo.uz",
+            defaults={
+                "full_name": "Demo Customer",
+                "is_email_verified": True,
+                "language": "uz",
+            },
         )
-        Coupon.objects.update_or_create(
-            code="SUMMER20",
-            defaults={"type": Coupon.Type.PERCENTAGE, "value": Decimal("20"),
-                      "min_order_amount": Decimal("500000"), "max_discount": Decimal("2000000"),
-                      "is_active": True, "valid_to": timezone.now() + timezone.timedelta(days=30),
-                      "per_user_limit": 3},
-        )
+        if created:
+            u.set_password("Demo1234!")
+            u.save(update_fields=["password"])

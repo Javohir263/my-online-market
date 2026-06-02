@@ -45,9 +45,16 @@ class ProductTagSerializer(serializers.ModelSerializer):
 # Category — tree (recursive)
 # =============================================================================
 class CategoryNodeSerializer(serializers.ModelSerializer):
-    """Recursive tree serializer. View `prefetch_related('children')` qiladi."""
+    """Recursive tree serializer. View `prefetch_related('children')` qiladi.
+
+    `products_count` — kategoriyaning O'ZI + barcha **avlod** kategoriyalardagi
+    is_active mahsulotlar soni (denorm `Category.products_count` esa faqat
+    to'g'ridan-to'g'ri products ni hisoblaydi, shuning uchun root kategoriyalar
+    uchun u 0 chiqar edi).
+    """
 
     children = serializers.SerializerMethodField()
+    products_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
@@ -67,6 +74,12 @@ class CategoryNodeSerializer(serializers.ModelSerializer):
         kids = [c for c in obj.children.all() if c.is_active]
         kids.sort(key=lambda c: (c.order, c.name))
         return CategoryNodeSerializer(kids, many=True, context=self.context).data
+
+    def get_products_count(self, obj: Category) -> int:
+        from apps.catalog.models import Product
+        return Product.objects.filter(
+            category_id__in=obj.get_descendant_ids(), is_active=True
+        ).count()
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):

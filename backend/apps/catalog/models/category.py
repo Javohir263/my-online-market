@@ -95,5 +95,18 @@ class Category(TimeStampedModel):
             node = node.parent
         return list(reversed(chain))
 
+    def get_descendant_ids(self) -> list[int]:
+        """Return id list including self + all descendants (BFS)."""
+        ids: list[int] = [self.id]
+        frontier = [self]
+        while frontier:
+            next_frontier: list[Category] = []
+            for node in frontier:
+                kids = list(node.children.all())
+                ids.extend(k.id for k in kids)
+                next_frontier.extend(kids)
+            frontier = next_frontier
+        return ids
+
     def get_full_path(self) -> str:
         return " / ".join([c.name for c in self.get_ancestors()] + [self.name])

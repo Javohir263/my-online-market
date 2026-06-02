@@ -52,3 +52,15 @@ CSRF_TRUSTED_ORIGINS = env(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
     default=["http://localhost:3000", "http://127.0.0.1:3000"],
 )
+
+# ---------------------------------------------------------------------------
+# Cache — Redis lokal dev'da ixtiyoriy.
+# Redis (6379) o'chiq bo'lsa, throttling/cache har so'rovda unga ulanishga
+# urinib ~20s timeout berardi. LocMem in-process va tezkor.
+# ---------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "mom-dev",
+    }
+}

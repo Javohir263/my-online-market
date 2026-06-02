@@ -197,6 +197,7 @@ export default function CartPage() {
 
             <Button
               className="h-11 w-full bg-primary-500 text-white hover:bg-primary-600"
+              nativeButton={false}
               render={<Link href="/checkout" />}
             >
               Rasmiylashtirish

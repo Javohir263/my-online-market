@@ -1,8 +1,6 @@
-import { Link } from "@/i18n/navigation";
-import { ArrowRight, ShieldCheck, Truck, Sparkles } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { serverCatalog, safe } from "@/lib/api/server";
+import { ShieldCheck, Truck, Sparkles } from "lucide-react";
+import { serverCatalog, serverPromotions, safe } from "@/lib/api/server";
+import { HeroBanner } from "@/components/home/hero-banner";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { ProductRow } from "@/components/product/product-row";
 
@@ -15,54 +13,22 @@ const FEATURES = [
 ];
 
 export default async function HomePage() {
-  const [categories, featured, newArrivals, bestsellers] = await Promise.all([
-    safe(serverCatalog.categoryTree, []),
-    safe(serverCatalog.featured, []),
-    safe(serverCatalog.newArrivals, []),
-    safe(serverCatalog.bestsellers, []),
-  ]);
+  const [banners, categories, featured, newArrivals, bestsellers] =
+    await Promise.all([
+      safe(() => serverPromotions.banners("hero"), []),
+      safe(serverCatalog.categoryTree, []),
+      safe(serverCatalog.featured, []),
+      safe(serverCatalog.newArrivals, []),
+      safe(serverCatalog.bestsellers, []),
+    ]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4">
-      {/* Hero */}
-      <section className="relative my-8 overflow-hidden rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 px-6 py-16 text-center text-white sm:py-24">
-        <div className="mx-auto max-w-2xl">
-          <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary-200">
-            Premium marketplace
-          </p>
-          <h1 className="font-heading text-4xl font-bold leading-tight sm:text-5xl">
-            Sifat va nafosat — bir joyda
-          </h1>
-          <p className="mx-auto mt-5 max-w-lg text-base text-primary-100">
-            My Online Market — eng yaxshi mahsulotlarni qulay narxlarda taqdim
-            etadigan zamonaviy onlayn do&apos;kon.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/catalog"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "h-11 bg-white px-6 text-primary-700 hover:bg-neutral-100",
-              )}
-            >
-              Xarid qilish
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-            <Link
-              href="/catalog"
-              className={cn(
-                buttonVariants({ size: "lg", variant: "outline" }),
-                "h-11 border-white/40 bg-transparent px-6 text-white hover:bg-white/10 hover:text-white",
-              )}
-            >
-              Katalogni ko&apos;rish
-            </Link>
-          </div>
-        </div>
-      </section>
+    <div className="mx-auto max-w-7xl px-4 pb-12">
+      {/* Hero — banner carousel + category rail */}
+      <HeroBanner banners={banners} categories={categories} />
 
-      {/* Features */}
-      <section className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-3">
+      {/* Trust features */}
+      <section className="grid grid-cols-1 gap-4 py-7 sm:grid-cols-3">
         {FEATURES.map((f) => (
           <div
             key={f.title}
@@ -108,8 +74,8 @@ export default async function HomePage() {
             Hozircha mahsulotlar yo&apos;q
           </h2>
           <p className="mt-2 text-sm text-khaki-700">
-            Admin paneldan mahsulot qo&apos;shing yoki backend ishlab
-            turganini tekshiring.
+            Admin paneldan mahsulot qo&apos;shing yoki backend ishlab turganini
+            tekshiring.
           </p>
         </section>
       )}

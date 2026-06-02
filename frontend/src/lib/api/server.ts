@@ -5,6 +5,7 @@
  * Browser axios client (client.ts) o'rniga native fetch — Next caching uchun.
  */
 import type {
+  Banner,
   Brand,
   CategoryNode,
   Paginated,
@@ -79,6 +80,15 @@ export const serverCatalog = {
     serverFetch<Paginated<ProductListItem>>("/catalog/search/", {
       revalidate: 30,
       query: { q },
+    }),
+};
+
+/** Promotions server reads (banners, etc.). */
+export const serverPromotions = {
+  banners: (position?: string) =>
+    serverFetch<Banner[]>("/promotions/banners/", {
+      revalidate: 300,
+      query: position ? { position } : undefined,
     }),
 };
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 from django.core.cache import cache
 from django.db.models import F, Prefetch, Q, QuerySet
 from django.shortcuts import get_object_or_404
+from django.utils.translation import get_language
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
@@ -96,7 +97,10 @@ class CategoryTreeView(APIView):
         description="Faollashtirilgan kategoriyalarning to'liq daraxti.",
     )
     def get(self, request):
-        cached = cache.get(CATEGORY_TREE_CACHE_KEY)
+        # Cache key must include language — kategoriya nomlari uz/ru/en farqli.
+        lang = (get_language() or "uz")[:2]
+        cache_key = f"{CATEGORY_TREE_CACHE_KEY}:{lang}"
+        cached = cache.get(cache_key)
         if cached is not None:
             return Response(cached)
 
@@ -108,7 +112,7 @@ class CategoryTreeView(APIView):
         data = CategoryNodeSerializer(
             roots, many=True, context={"request": request}
         ).data
-        cache.set(CATEGORY_TREE_CACHE_KEY, data, CATEGORY_TREE_TTL)
+        cache.set(cache_key, data, CATEGORY_TREE_TTL)
         return Response(data)
 
 

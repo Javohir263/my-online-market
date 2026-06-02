@@ -180,6 +180,7 @@ export function CartDrawer() {
                   variant="outline"
                   onClick={closeCart}
                   className="border-neutral-300"
+                  nativeButton={false}
                   render={<Link href="/cart" />}
                 >
                   Savatcha
@@ -187,6 +188,7 @@ export function CartDrawer() {
                 <Button
                   className="bg-primary-500 text-white hover:bg-primary-600"
                   onClick={closeCart}
+                  nativeButton={false}
                   render={<Link href="/checkout" />}
                 >
                   Rasmiylashtirish
