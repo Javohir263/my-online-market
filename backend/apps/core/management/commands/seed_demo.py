@@ -20,6 +20,7 @@ Foydalanish:
 
 from __future__ import annotations
 
+import json
 import os
 import random
 from decimal import Decimal
@@ -149,9 +150,17 @@ class Command(BaseCommand):
         self.no_images = options["no_images"]
         self.no_fetch = options["no_fetch"]
         self.unsplash_key = options.get("unsplash_key")
-        self.unsplash_cache: dict[str, list[str]] = {}
         self.unsplash_disabled = False  # rate-limit'da True bo'ladi
         self.session = requests.Session()
+
+        # Disk cache: keyword → [photo_urls]. Bir necha run orasida saqlanadi
+        # va har soatlik 50-limit'ni samarali ishlatish imkonini beradi.
+        self.unsplash_cache_file = Path(settings.MEDIA_ROOT) / ".unsplash_cache.json"
+        self.unsplash_cache: dict[str, list[str]] = self._load_unsplash_cache()
+        if self.unsplash_cache:
+            self.stdout.write(
+                f"  [unsplash] disk cache: {len(self.unsplash_cache)} ta keyword yuklandi"
+            )
 
         if options["fresh"]:
             self.stdout.write("Eski katalog tozalanmoqda...")
@@ -189,6 +198,9 @@ class Command(BaseCommand):
         self._seed_banners()
         self._seed_coupons()
         self._seed_demo_user()
+
+        # Unsplash disk cache'ni saqlaymiz (keyingi run'lar uchun)
+        self._save_unsplash_cache()
 
         self.stdout.write("products_count (denorm) qayta hisoblanmoqda...")
         for cat in Category.objects.all():
@@ -402,27 +414,33 @@ class Command(BaseCommand):
                 if r.status_code == 200:
                     results = r.json().get("results", [])
                     urls = [p["urls"]["regular"] for p in results if p.get("urls", {}).get("regular")]
+                    # Cache ham bo'sh, ham urls'lik natijalar — keyingi run'lar
+                    # qaytadan API chaqirmasligi uchun. Faqat foto YO'Q deb
+                    # tasdiqlangan keyword shu xolatda saqlanadi.
                     self.unsplash_cache[keyword] = urls
                     if not urls:
                         self.stdout.write(f"    [unsplash] '{keyword}' uchun foto topilmadi")
                 elif r.status_code == 403:
+                    # Rate-limit. Cache'ga YOZMAYMIZ — keyingi run'da qaytadan
+                    # urinish uchun. Hozircha shu run uchun Unsplash o'chiriladi.
+                    rem = r.headers.get("X-Ratelimit-Remaining", "?")
                     self.stdout.write(self.style.WARNING(
-                        "    [unsplash] RATE LIMIT (403) — loremflickr/picsum'ga o'tamiz"
+                        f"    [unsplash] RATE LIMIT (403, remaining={rem}) — "
+                        "loremflickr/picsum'ga o'tamiz, keyingi run'da qayta urinamiz"
                     ))
                     self.unsplash_disabled = True
-                    self.unsplash_cache[keyword] = []
                 elif r.status_code == 401:
+                    # Key noto'g'ri — cache'ga yozish ma'nosiz.
                     self.stdout.write(self.style.ERROR(
                         "    [unsplash] Access Key noto'g'ri (401) — loremflickr'ga o'tamiz"
                     ))
                     self.unsplash_disabled = True
-                    self.unsplash_cache[keyword] = []
                 else:
+                    # Boshqa xatolar — cache'ga yozmaymiz, keyingi run qayta urinadi.
                     self.stdout.write(f"    [unsplash] xato {r.status_code}: {keyword}")
-                    self.unsplash_cache[keyword] = []
             except requests.RequestException as exc:
+                # Tarmoq xatosi — cache'ga yozmaymiz.
                 self.stdout.write(f"    [unsplash] tarmoq xatosi: {exc}")
-                self.unsplash_cache[keyword] = []
 
         photos = self.unsplash_cache.get(keyword) or []
         if not photos:
@@ -430,6 +448,34 @@ class Command(BaseCommand):
         # Deterministik tanlash (slug + index)
         idx = (abs(hash(slug)) + index) % len(photos)
         return photos[idx]
+
+    # ----------------------------------------------------------------------
+    def _load_unsplash_cache(self) -> dict[str, list[str]]:
+        """media/.unsplash_cache.json dan keshlanga keyword→URLs'ni o'qish."""
+        if not self.unsplash_cache_file.exists():
+            return {}
+        try:
+            with self.unsplash_cache_file.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def _save_unsplash_cache(self) -> None:
+        """Joriy unsplash_cache'ni diskka yozish — keyingi run'da qayta ishlatish uchun."""
+        if not self.unsplash_cache:
+            return
+        try:
+            self.unsplash_cache_file.parent.mkdir(parents=True, exist_ok=True)
+            with self.unsplash_cache_file.open("w", encoding="utf-8") as f:
+                json.dump(self.unsplash_cache, f, ensure_ascii=False, indent=2)
+            self.stdout.write(
+                f"  [unsplash] disk cache saqlandi: {len(self.unsplash_cache)} ta keyword"
+            )
+        except OSError as exc:
+            self.stdout.write(self.style.WARNING(
+                f"  [unsplash] cache saqlanmadi: {exc}"
+            ))
 
     def _attach_from_pool(self, product, slug: str, count: int) -> None:
         """Mavjud media/products/ pool'idan deterministik tanlash (offline)."""
