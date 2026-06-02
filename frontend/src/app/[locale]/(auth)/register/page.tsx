@@ -33,31 +33,49 @@ export default function RegisterPage() {
   const onSubmit = (data: FormData) => registerMut.mutate(data);
 
   return (
-    <div>
-      <h1 className="font-heading text-2xl font-bold text-neutral-900">
-        Ro&apos;yxatdan o&apos;tish
-      </h1>
-      <p className="mt-1 text-sm text-khaki-600">
-        Yangi akkaunt yarating va xaridni boshlang.
-      </p>
+    <div className="rounded-3xl bg-white p-8 shadow-[var(--shadow-card)] ring-1 ring-neutral-200/60 sm:p-10">
+      <div>
+        <h1 className="font-heading text-3xl font-bold text-neutral-900">
+          Ro&apos;yxatdan o&apos;tish
+        </h1>
+        <p className="mt-1.5 text-sm text-khaki-700">
+          Yangi akkaunt yarating va premium xizmatlarga kirishing.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-4">
         <Field label="To'liq ism" error={errors.full_name?.message}>
-          <Input placeholder="Ism Familiya" {...register("full_name")} />
+          <Input
+            placeholder="Ism Familiya"
+            autoComplete="name"
+            className="h-11"
+            {...register("full_name")}
+          />
         </Field>
         <Field label="Email" error={errors.email?.message}>
-          <Input type="email" placeholder="siz@email.com" {...register("email")} />
+          <Input
+            type="email"
+            placeholder="siz@email.com"
+            autoComplete="email"
+            className="h-11"
+            {...register("email")}
+          />
         </Field>
         <Field label="Parol" error={errors.password?.message}>
-          <Input type="password" placeholder="••••••••" {...register("password")} />
+          <Input
+            type="password"
+            placeholder="kamida 8 belgi"
+            autoComplete="new-password"
+            className="h-11"
+            {...register("password")}
+          />
         </Field>
-        <Field
-          label="Parolni tasdiqlang"
-          error={errors.password_confirm?.message}
-        >
+        <Field label="Parolni tasdiqlang" error={errors.password_confirm?.message}>
           <Input
             type="password"
             placeholder="••••••••"
+            autoComplete="new-password"
+            className="h-11"
             {...register("password_confirm")}
           />
         </Field>
@@ -65,17 +83,17 @@ export default function RegisterPage() {
         <Button
           type="submit"
           disabled={registerMut.isPending}
-          className="w-full bg-primary-500 text-white hover:bg-primary-600"
+          className="h-11 w-full bg-primary-500 text-base font-semibold text-white hover:bg-primary-600"
         >
           {registerMut.isPending ? "Yaratilmoqda..." : "Ro'yxatdan o'tish"}
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-khaki-600">
+      <p className="mt-6 text-center text-sm text-khaki-700">
         Akkauntingiz bormi?{" "}
         <Link
           href="/login"
-          className="font-medium text-primary-600 hover:underline"
+          className="font-semibold text-primary-600 hover:underline"
         >
           Kirish
         </Link>
@@ -95,7 +113,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-neutral-800">
+      <label className="mb-1.5 block text-sm font-semibold text-neutral-800">
         {label}
       </label>
       {children}
